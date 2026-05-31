@@ -1,5 +1,5 @@
 #vertex
-#version 330 core
+#version 460 core
 layout (location = 0) in vec3 aPos;
 
 void main()
@@ -8,10 +8,10 @@ void main()
 }
 
 #fragment
-#version 330 core
+#version 460 core
 out vec4 FragColor;
 
 void main()
 {
-    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
+    FragColor = vec4(0.0f, 0.5f, 1.0f, 1.0f);
 } 

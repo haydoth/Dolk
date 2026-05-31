@@ -10,7 +10,7 @@
 
 #define da(T) T*
 
-typedef struct da_header {u64 ItemSize, Count, Capacity;} da_header;
+typedef struct da_header {u64 Count, Capacity;} da_header;
 
 #define da_append(da, item)\
   do {									\
@@ -30,6 +30,21 @@ typedef struct da_header {u64 ItemSize, Count, Capacity;} da_header;
   } while(0)
 
 #define da_len(da) ((da_header*)(da) - 1)->Count
+
+// NOTE: This will invalidate all handles to elements after the index
+#define da_remove(da, index)				\
+  do {							\
+  if(da) {						\
+    if(index < da_len(da)) {				\
+      memmove(da + index, da + index + 1, sizeof(*da) * (da_len(da) - (index + 1))); \
+    }							\
+  }							\
+} while(0)
+
+#define da_erase(da, index)				\
+  do {							\
+    if(da) { if(index < da_len(da)) { memset(da + index, 0, sizeof(*da)); }} \
+} while(0)
 
 // NOTE: Could be made more efficient by memcopying the source DA to the end of the  destination
 #define da_append_da(dest, src)\

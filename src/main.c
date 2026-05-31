@@ -51,6 +51,10 @@
 
  */
 
+#define CH_LOG(...) printf(__VA_ARGS__);
+#define CH_INFO(...) CH_LOG("[INFO] "__VA_ARGS__);
+#define CH_WARNING(...) CH_LOG("[WARNING] "__VA_ARGS__);
+#define CH_ERROR(...) CH_LOG("[ERROR] "__VA_ARGS__);
 
 global GLFWwindow* OpenGL_Window;
 
@@ -135,7 +139,7 @@ typedef struct opengl_shader_source {
 opengl_shader_source
 ProcessShaderString(string_view inputStr)
 {
-  printf("Processing shader source input...\n");
+  CH_INFO("Processing shader source input...\n");
 
   da(string_view) lines = sv_split_by_delim(inputStr, '\n', true);
   opengl_shader_source result = {0};
@@ -143,7 +147,9 @@ ProcessShaderString(string_view inputStr)
   int currentlySelected = 0;
   for(u64 lineIndex = 0; lineIndex < da_len(lines); lineIndex++) {
     string_view line = lines[lineIndex];
-    sv_trim(&line);
+    sv_trim(&line); // Necessary in order to properly check against our tokens
+
+    CH_LOG("lineIndex: %zu, mode: %i |"SV_Fmt"|\n", lineIndex, currentlySelected, SV_Arg(line));
 
     if(sv_equal(line, sv("#vertex"))) {
       currentlySelected = 1; continue;
@@ -151,17 +157,20 @@ ProcessShaderString(string_view inputStr)
     if(sv_equal(line, sv("#fragment"))) {
       currentlySelected = 2; continue;
     }
-    //TODO: fix this bug
+
+    // Re-adds the newline removed by sv_trim
+    while(lineIndex < da_len(lines) - 1 && line.Length > 0 && line.CString[line.Length - 1] != '\n') {
+      line.Length += 1; 
+    }
+    
     switch(currentlySelected) {
     case 1: {
-      printf("vertex line %zu: |"SV_Fmt"|\n", lineIndex, SV_Arg(line));
       da_append(result.VertexStrings, line.CString);
-      da_append(result.VertexStringLengths, line.Length);
+      da_append(result.VertexStringLengths, line.Length); 
     } break;
     case 2: {
-      printf("fragment line %zu: |"SV_Fmt"|\n", lineIndex, SV_Arg(line));
       da_append(result.FragmentStrings, line.CString);
-      da_append(result.FragmentStringLengths, line.Length);
+      da_append(result.FragmentStringLengths, line.Length); 
     } break;
     default: break;
     }
@@ -171,34 +180,16 @@ ProcessShaderString(string_view inputStr)
   return result;
 }
 
-typedef struct opengl_shader_handle {u32 Vertex, Fragment;} opengl_shader_handle;
 
-int
-main() {
-
-  arena appArena = arena_create();
-  
-  if(!OpenGL_Init(4, 6, 1280, 720, "W Goons")) return -1;
-  printf("OpenGL Initialized!\n");
-  OpenGL_SetClearColor(0.9f, 0.2f, 0.4f);
-  
-  float points[] = {
-    -0.5f, -0.5f, 0.0f,
-     0.5f, -0.5f, 0.0f,
-     0.0f,  0.5f, 0.0f};
-
-  u32 vertexBufferObject;
-  glCreateBuffers(1, &vertexBufferObject);
-  glNamedBufferData(vertexBufferObject, sizeof(points), &points, GL_STATIC_DRAW);
-
-  string_view shaderPath = sv("../shaders/test.glsl");
-  file_buffer buf = ReadEntireFile(shaderPath.CString, &appArena);
+u32
+OpenGL_LoadShader(char* path, arena* _arena) {
+  file_buffer buf = ReadEntireFile(path, _arena);
     
   if(buf.Buffer) {
     string_view file_str = sv_fb(buf);
     opengl_shader_source src = ProcessShaderString(file_str);
 
-    printf("Compiling shader source...\n");
+    CH_INFO("Compiling shader source...\n");
     int success;
     
     unsigned int vertexShader;
@@ -210,7 +201,7 @@ main() {
     if(!success) {
       char infoLog[512];
       glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-      printf("Failed to compile vertex shader:\n%s\n", infoLog);
+      CH_ERROR("Failed to compile vertex shader:\n%s\n", infoLog);
     }
     
     unsigned int fragmentShader;
@@ -219,7 +210,11 @@ main() {
 		   src.FragmentStrings, src.FragmentStringLengths);
     glCompileShader(fragmentShader);
     glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-    if(!success) ;
+    if(!success) {
+      char infoLog[512];
+      glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
+      CH_ERROR("Failed to compile fragment shader:\n%s\n", infoLog);
+    }
     
     unsigned int shaderProgram;
     shaderProgram = glCreateProgram();
@@ -231,19 +226,68 @@ main() {
     glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
     if(!success) {
       char infoLog[512];
-      glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-      printf("Failed to compile vertex shader:\n%s\n", infoLog);
-    }
+      glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+      CH_ERROR("Failed to link shader program:\n%s\n", infoLog);
+    }    
 
     glUseProgram(shaderProgram);
     
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);  
-  } 
+
+    return shaderProgram;
+  }
+  return 0;
+}
+
+typedef struct opengl_vertex_array {
+
+  u32 Handle;
+  u32 IndexBuffer;
+  da(u32) VertexBuffers;
+  
+} opengl_vertex_array;
+
+opengl_vertex_array
+OpenGL_CreateVertexArray() {
+  
+}
+
+int
+main() {
+
+  arena appArena = arena_create();
+  
+  if(!OpenGL_Init(4, 6, 1280, 720, "W Goons")) return -1;
+  CH_INFO("OpenGL Initialized!\n");
+  OpenGL_SetClearColor(0.9f, 0.2f, 0.4f);
+  
+  float points[] = {
+    -0.5f, -0.5f, 0.0f,
+     0.5f, -0.5f, 0.0f,
+     0.0f,  0.5f, 0.0f};
+
+  u32 vertexArrays[1];
+  glCreateVertexArrays(1, &vertexArrays[0]);
+
+  u32 vertexBuffers[1];
+  glCreateBuffers(1, &vertexBuffers[0]);
+  glNamedBufferStorage(vertexBuffers[0], sizeof(points), points, GL_DYNAMIC_STORAGE_BIT);
+
+  glVertexArrayVertexBuffer(vertexArrays[0], 0, vertexBuffers[0], 0, sizeof(float)*3);
+  glEnableVertexArrayAttrib(vertexArrays[0], 0);
+  glVertexArrayAttribFormat(vertexArrays[0], 0, 3, GL_FLOAT, GL_FALSE, 0);
+  glVertexArrayAttribBinding(vertexArrays[0], 0, 0);
+  
+  u32 testShader = OpenGL_LoadShader("../shaders/test.glsl", &appArena);
   
   while(!glfwWindowShouldClose(OpenGL_Window))
   {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glUseProgram(testShader);
+    glBindVertexArray(vertexArrays[0]);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
     
     glfwSwapBuffers(OpenGL_Window);
     glfwPollEvents();    

@@ -38,7 +38,7 @@ sv_chop_right(string_view* sv, u64 n)
 void
 sv_trim_left(string_view* sv) {
 
-  while(sv->Length > 0 && sv->CString[0] == ' ') {
+  while(sv->Length > 0 && isspace(sv->CString[0])) {
     sv_chop_left(sv, 1);
   }
 }
@@ -46,7 +46,7 @@ sv_trim_left(string_view* sv) {
 void
 sv_trim_right(string_view* sv)
 {
-  while(sv->Length > 0 && sv->CString[sv->Length-1] == ' ') {
+  while(sv->Length > 0 && isspace(sv->CString[sv->Length-1])) {
     sv_chop_right(sv, 1);
   }
 }

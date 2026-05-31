@@ -1,7 +1,9 @@
 #include "arena.h"
 
-// TODO: make arena platform-agnostic
+// STD
+#include <stdio.h>
 
+// Win32
 #include <windows.h>
 
 bool
@@ -38,30 +40,34 @@ arena_create() {
 
   void* buffer = VirtualAlloc(0, reserved, MEM_RESERVE, PAGE_NOACCESS);
   VirtualAlloc(buffer, committed, MEM_COMMIT, PAGE_READWRITE);
+  ASSERT(buffer);
   
   return (arena) {(u8*)buffer, 0, committed, reserved};
 }
 
+
 void*
 arena_push_align(arena* a, u64 size, u64 alignment)
 {
-  u64 current = (u64)a->Buffer + a->Size;
+  u64 current = (u64)a->Buffer + a->Offset;
   u64 aligned = align_forward(current, alignment);
-  u64 relative = aligned - (u64)a->Buffer;
+  u64 newOffset = (aligned - (u64)a->Buffer) + size;
 
-  if(relative + size > a->Committed) {
+  if(newOffset > a->Committed) {
+    printf("Arena used too much memory");
     ASSERT(false); // Nothing should use this much memory, for now
   }
 
-  a->Size += size;
-  return a->Buffer + relative;
+  a->Offset = newOffset;
+  return (void*)aligned;
 }
 
 void
 arena_clear(arena* a) {
-  a->Size = 0;
+  a->Offset = 0;
   // TODO: if the arena had expanded, MEM_DECOMMIT back to the default arena size
 }
+
 
 void arena_free(arena* a) {
   VirtualFree(a->Buffer, 0, MEM_RELEASE);
