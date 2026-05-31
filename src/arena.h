@@ -7,7 +7,7 @@
 typedef struct arena {
 
   u8* Buffer;
-  u64 Size;
+  u64 Offset;
   u64 Committed;
   u64 Reserved;
 
@@ -15,8 +15,8 @@ typedef struct arena {
 
 arena arena_create();
 void* arena_push_align(arena* a, u64 size, u64 alignment);
-void arena_clear(arena* a);
-void arena_free(arena* a);
+void  arena_clear(arena* a);
+void  arena_free (arena* a);
 
 #define arena_push(arena, size)\
   arena_push_align((arena), (size), ARENA_DEFAULT_ALIGNMENT)

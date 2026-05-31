@@ -125,11 +125,53 @@ sv_fb(file_buffer fb)
   return (string_view) {fb.Buffer, fb.Size};
 }
 
-void
+typedef struct opengl_shader_source {
+  da(u32) VertexStringLengths;
+  da(u32) FragmentStringLengths;
+  da(const char*) VertexStrings;
+  da(const char*) FragmentStrings;
+} opengl_shader_source;
+
+opengl_shader_source
 ProcessShaderString(string_view inputStr)
 {
-  UNUSED(inputStr);
+  printf("Processing shader source input...\n");
+
+  da(string_view) lines = sv_split_by_delim(inputStr, '\n', true);
+  opengl_shader_source result = {0};
+  
+  int currentlySelected = 0;
+  for(u64 lineIndex = 0; lineIndex < da_len(lines); lineIndex++) {
+    string_view line = lines[lineIndex];
+    sv_trim(&line);
+
+    if(sv_equal(line, sv("#vertex"))) {
+      currentlySelected = 1; continue;
+    }
+    if(sv_equal(line, sv("#fragment"))) {
+      currentlySelected = 2; continue;
+    }
+    //TODO: fix this bug
+    switch(currentlySelected) {
+    case 1: {
+      printf("vertex line %zu: |"SV_Fmt"|\n", lineIndex, SV_Arg(line));
+      da_append(result.VertexStrings, line.CString);
+      da_append(result.VertexStringLengths, line.Length);
+    } break;
+    case 2: {
+      printf("fragment line %zu: |"SV_Fmt"|\n", lineIndex, SV_Arg(line));
+      da_append(result.FragmentStrings, line.CString);
+      da_append(result.FragmentStringLengths, line.Length);
+    } break;
+    default: break;
+    }
+  }
+  
+  da_free(lines);
+  return result;
 }
+
+typedef struct opengl_shader_handle {u32 Vertex, Fragment;} opengl_shader_handle;
 
 int
 main() {
@@ -137,6 +179,7 @@ main() {
   arena appArena = arena_create();
   
   if(!OpenGL_Init(4, 6, 1280, 720, "W Goons")) return -1;
+  printf("OpenGL Initialized!\n");
   OpenGL_SetClearColor(0.9f, 0.2f, 0.4f);
   
   float points[] = {
@@ -148,22 +191,59 @@ main() {
   glCreateBuffers(1, &vertexBufferObject);
   glNamedBufferData(vertexBufferObject, sizeof(points), &points, GL_STATIC_DRAW);
 
-  file_buffer buf = ReadEntireFile("shaders/test.glsl", &appArena);
-
+  string_view shaderPath = sv("../shaders/test.glsl");
+  file_buffer buf = ReadEntireFile(shaderPath.CString, &appArena);
+    
   if(buf.Buffer) {
     string_view file_str = sv_fb(buf);
-    da(string_view) lines = split_by_delim(file_str, '\n');
+    opengl_shader_source src = ProcessShaderString(file_str);
 
-    for(u64 i = 0; i < da_len(lines); i++) {
-      printf(SV_Fmt"\n", SV_Arg(lines[i]));
+    printf("Compiling shader source...\n");
+    int success;
+    
+    unsigned int vertexShader;
+    vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShader, da_len(src.VertexStrings),
+		   src.VertexStrings, src.VertexStringLengths);
+    glCompileShader(vertexShader);
+    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+    if(!success) {
+      char infoLog[512];
+      glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+      printf("Failed to compile vertex shader:\n%s\n", infoLog);
     }
-  }
-  
+    
+    unsigned int fragmentShader;
+    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShader, da_len(src.FragmentStrings),
+		   src.FragmentStrings, src.FragmentStringLengths);
+    glCompileShader(fragmentShader);
+    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+    if(!success) ;
+    
+    unsigned int shaderProgram;
+    shaderProgram = glCreateProgram();
+    
+    glAttachShader(shaderProgram, vertexShader);
+    glAttachShader(shaderProgram, fragmentShader);
+    glLinkProgram(shaderProgram);
+
+    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+    if(!success) {
+      char infoLog[512];
+      glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+      printf("Failed to compile vertex shader:\n%s\n", infoLog);
+    }
+
+    glUseProgram(shaderProgram);
+    
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);  
+  } 
   
   while(!glfwWindowShouldClose(OpenGL_Window))
   {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     
     glfwSwapBuffers(OpenGL_Window);
     glfwPollEvents();    

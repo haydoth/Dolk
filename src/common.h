@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdlib.h>
 
 #define global static
 #define internal static
@@ -9,7 +10,8 @@
 #define true 1
 #define false 0
 
-#define bool uint8_t 
+#define bool int8_t
+
 #define u8  uint8_t
 #define u16 uint16_t
 #define u32 uint32_t

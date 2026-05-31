@@ -23,7 +23,7 @@ typedef struct da_header {u64 ItemSize, Count, Capacity;} da_header;
     da_header* header = (da_header*)(da) - 1;				\
     if(header->Count >= header->Capacity) {				\
       header->Capacity *= 2;						\
-      realloc(header, sizeof(*da)*header->Capacity + sizeof(da_header));\
+      header = realloc(header, sizeof(*da)*header->Capacity + sizeof(da_header));\
       da = (void*)(header + 1);						\
     }									\
     (da)[header->Count++] = (item);					\
