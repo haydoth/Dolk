@@ -51,10 +51,10 @@
 
  */
 
-#define CH_LOG(...) printf(__VA_ARGS__);
-#define CH_INFO(...) CH_LOG("[INFO] "__VA_ARGS__);
-#define CH_WARNING(...) CH_LOG("[WARNING] "__VA_ARGS__);
-#define CH_ERROR(...) CH_LOG("[ERROR] "__VA_ARGS__);
+#define KIMBER_LOG(...) printf(__VA_ARGS__);
+#define KIMBER_INFO(...) KIMBER_LOG("[INFO] "__VA_ARGS__);
+#define KIMBER_WARNING(...) KIMBER_LOG("[WARNING] "__VA_ARGS__);
+#define KIMBER_ERROR(...) KIMBER_LOG("[ERROR] "__VA_ARGS__);
 
 global GLFWwindow* OpenGL_Window;
 
@@ -139,7 +139,7 @@ typedef struct opengl_shader_source {
 opengl_shader_source
 ProcessShaderString(string_view inputStr)
 {
-  CH_INFO("Processing shader source input...\n");
+  KIMBER_INFO("Processing shader source input...\n");
 
   da(string_view) lines = sv_split_by_delim(inputStr, '\n', true);
   opengl_shader_source result = {0};
@@ -149,7 +149,7 @@ ProcessShaderString(string_view inputStr)
     string_view line = lines[lineIndex];
     sv_trim(&line); // Necessary in order to properly check against our tokens
 
-    CH_LOG("lineIndex: %zu, mode: %i |"SV_Fmt"|\n", lineIndex, currentlySelected, SV_Arg(line));
+    KIMBER_LOG("lineIndex: %zu, mode: %i |"SV_Fmt"|\n", lineIndex, currentlySelected, SV_Arg(line));
 
     if(sv_equal(line, sv("#vertex"))) {
       currentlySelected = 1; continue;
@@ -189,7 +189,7 @@ OpenGL_LoadShader(char* path, arena* _arena) {
     string_view file_str = sv_fb(buf);
     opengl_shader_source src = ProcessShaderString(file_str);
 
-    CH_INFO("Compiling shader source...\n");
+    KIMBER_INFO("Compiling shader source...\n");
     int success;
     
     unsigned int vertexShader;
@@ -197,11 +197,12 @@ OpenGL_LoadShader(char* path, arena* _arena) {
     glShaderSource(vertexShader, da_len(src.VertexStrings),
 		   src.VertexStrings, src.VertexStringLengths);
     glCompileShader(vertexShader);
+    
     glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
     if(!success) {
       char infoLog[512];
       glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-      CH_ERROR("Failed to compile vertex shader:\n%s\n", infoLog);
+      KIMBER_ERROR("Failed to compile vertex shader:\n%s\n", infoLog);
     }
     
     unsigned int fragmentShader;
@@ -209,11 +210,12 @@ OpenGL_LoadShader(char* path, arena* _arena) {
     glShaderSource(fragmentShader, da_len(src.FragmentStrings),
 		   src.FragmentStrings, src.FragmentStringLengths);
     glCompileShader(fragmentShader);
+
     glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
     if(!success) {
       char infoLog[512];
       glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-      CH_ERROR("Failed to compile fragment shader:\n%s\n", infoLog);
+     KIMBER_ERROR("Failed to compile fragment shader:\n%s\n", infoLog);
     }
     
     unsigned int shaderProgram;
@@ -227,7 +229,7 @@ OpenGL_LoadShader(char* path, arena* _arena) {
     if(!success) {
       char infoLog[512];
       glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-      CH_ERROR("Failed to link shader program:\n%s\n", infoLog);
+      KIMBER_ERROR("Failed to link shader program:\n%s\n", infoLog);
     }    
 
     glUseProgram(shaderProgram);
@@ -240,41 +242,39 @@ OpenGL_LoadShader(char* path, arena* _arena) {
   return 0;
 }
 
-typedef struct opengl_vertex_array {
-
-  u32 Handle;
-  u32 IndexBuffer;
-  da(u32) VertexBuffers;
-  
-} opengl_vertex_array;
-
-opengl_vertex_array
-OpenGL_CreateVertexArray() {
-  
-}
-
 int
 main() {
 
   arena appArena = arena_create();
   
   if(!OpenGL_Init(4, 6, 1280, 720, "W Goons")) return -1;
-  CH_INFO("OpenGL Initialized!\n");
+  KIMBER_INFO("OpenGL Initialized!\n");
   OpenGL_SetClearColor(0.9f, 0.2f, 0.4f);
   
   float points[] = {
-    -0.5f, -0.5f, 0.0f,
-     0.5f, -0.5f, 0.0f,
-     0.0f,  0.5f, 0.0f};
+    0.5f,  0.5f, 0.0f,  // top right
+    0.5f, -0.5f, 0.0f,  // bottom right
+    -0.5f, -0.5f, 0.0f,  // bottom left
+    -0.5f,  0.5f, 0.0f   // top left 
+  };
+  u32 indices[] = {  // note that we start from 0!
+    0, 1, 3,   // first triangle
+    1, 2, 3    // second triangle
+  };  
 
   u32 vertexArrays[1];
   glCreateVertexArrays(1, &vertexArrays[0]);
 
-  u32 vertexBuffers[1];
-  glCreateBuffers(1, &vertexBuffers[0]);
-  glNamedBufferStorage(vertexBuffers[0], sizeof(points), points, GL_DYNAMIC_STORAGE_BIT);
+  u32 buffers[2];
+  glCreateBuffers(1, &buffers[0]);
+  glNamedBufferStorage(buffers[0], sizeof(points), points, GL_DYNAMIC_STORAGE_BIT);
 
-  glVertexArrayVertexBuffer(vertexArrays[0], 0, vertexBuffers[0], 0, sizeof(float)*3);
+  glCreateBuffers(1, &buffers[1]);
+  glNamedBufferStorage(buffers[1], sizeof(indices), indices, GL_DYNAMIC_STORAGE_BIT);
+  
+  glVertexArrayVertexBuffer(vertexArrays[0], 0, buffers[0], 0, sizeof(float)*3);
+  glVertexArrayElementBuffer(vertexArrays[0], buffers[1]);
+
   glEnableVertexArrayAttrib(vertexArrays[0], 0);
   glVertexArrayAttribFormat(vertexArrays[0], 0, 3, GL_FLOAT, GL_FALSE, 0);
   glVertexArrayAttribBinding(vertexArrays[0], 0, 0);
@@ -286,8 +286,8 @@ main() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(testShader);
-    glBindVertexArray(vertexArrays[0]);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[1]);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     
     glfwSwapBuffers(OpenGL_Window);
     glfwPollEvents();    
