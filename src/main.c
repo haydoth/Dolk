@@ -51,10 +51,10 @@
 
  */
 
-#define KIMBER_LOG(...) printf(__VA_ARGS__);
-#define KIMBER_INFO(...) KIMBER_LOG("[INFO] "__VA_ARGS__);
-#define KIMBER_WARNING(...) KIMBER_LOG("[WARNING] "__VA_ARGS__);
-#define KIMBER_ERROR(...) KIMBER_LOG("[ERROR] "__VA_ARGS__);
+#define DOLK_LOG(...) printf(__VA_ARGS__);
+#define DOLK_INFO(...) DOLK_LOG("[INFO] "__VA_ARGS__);
+#define DOLK_WARNING(...) DOLK_LOG("[WARNING] "__VA_ARGS__);
+#define DOLK_ERROR(...) DOLK_LOG("[ERROR] "__VA_ARGS__);
 
 global GLFWwindow* OpenGL_Window;
 
@@ -120,6 +120,7 @@ OpenGL_Init(int major, int minor, int windowWidth, int windowHeight, const char*
   if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) return false;
   
   glViewport(0, 0, windowWidth, windowHeight);
+
   return true;
 }
 
@@ -130,8 +131,8 @@ sv_fb(file_buffer fb)
 }
 
 typedef struct opengl_shader_source {
-  da(u32) VertexStringLengths;
-  da(u32) FragmentStringLengths;
+  da(i32) VertexStringLengths;
+  da(i32) FragmentStringLengths;
   da(const char*) VertexStrings;
   da(const char*) FragmentStrings;
 } opengl_shader_source;
@@ -139,7 +140,7 @@ typedef struct opengl_shader_source {
 opengl_shader_source
 ProcessShaderString(string_view inputStr)
 {
-  KIMBER_INFO("Processing shader source input...\n");
+  DOLK_INFO("Processing shader source input...\n");
 
   da(string_view) lines = sv_split_by_delim(inputStr, '\n', true);
   opengl_shader_source result = {0};
@@ -149,7 +150,7 @@ ProcessShaderString(string_view inputStr)
     string_view line = lines[lineIndex];
     sv_trim(&line); // Necessary in order to properly check against our tokens
 
-    KIMBER_LOG("lineIndex: %zu, mode: %i |"SV_Fmt"|\n", lineIndex, currentlySelected, SV_Arg(line));
+    DOLK_LOG("lineIndex: %zu, mode: %i |"SV_Fmt"|\n", lineIndex, currentlySelected, SV_Arg(line));
 
     if(sv_equal(line, sv("#vertex"))) {
       currentlySelected = 1; continue;
@@ -189,10 +190,10 @@ OpenGL_LoadShader(char* path, arena* _arena) {
     string_view file_str = sv_fb(buf);
     opengl_shader_source src = ProcessShaderString(file_str);
 
-    KIMBER_INFO("Compiling shader source...\n");
+    DOLK_INFO("Compiling shader source...\n");
     int success;
     
-    unsigned int vertexShader;
+    u32 vertexShader;
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, da_len(src.VertexStrings),
 		   src.VertexStrings, src.VertexStringLengths);
@@ -202,10 +203,10 @@ OpenGL_LoadShader(char* path, arena* _arena) {
     if(!success) {
       char infoLog[512];
       glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-      KIMBER_ERROR("Failed to compile vertex shader:\n%s\n", infoLog);
+      DOLK_ERROR("Failed to compile vertex shader:\n%s\n", infoLog);
     }
     
-    unsigned int fragmentShader;
+    u32 fragmentShader;
     fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragmentShader, da_len(src.FragmentStrings),
 		   src.FragmentStrings, src.FragmentStringLengths);
@@ -215,10 +216,10 @@ OpenGL_LoadShader(char* path, arena* _arena) {
     if(!success) {
       char infoLog[512];
       glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-     KIMBER_ERROR("Failed to compile fragment shader:\n%s\n", infoLog);
+     DOLK_ERROR("Failed to compile fragment shader:\n%s\n", infoLog);
     }
     
-    unsigned int shaderProgram;
+    u32 shaderProgram;
     shaderProgram = glCreateProgram();
     
     glAttachShader(shaderProgram, vertexShader);
@@ -229,7 +230,7 @@ OpenGL_LoadShader(char* path, arena* _arena) {
     if(!success) {
       char infoLog[512];
       glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-      KIMBER_ERROR("Failed to link shader program:\n%s\n", infoLog);
+      DOLK_ERROR("Failed to link shader program:\n%s\n", infoLog);
     }    
 
     glUseProgram(shaderProgram);
@@ -237,9 +238,63 @@ OpenGL_LoadShader(char* path, arena* _arena) {
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);  
 
+    da_free(src.FragmentStrings);
+    da_free(src.FragmentStringLengths);
+    da_free(src.VertexStrings);
+    da_free(src.VertexStringLengths);
     return shaderProgram;
   }
   return 0;
+}
+
+internal void
+OpenGL_DebugMessageCallback(GLenum source, GLenum type, GLuint id,
+			    GLenum severity, GLsizei length, GLchar const* message, void const* user_param)
+{
+  UNUSED(length);
+  UNUSED(user_param);
+  
+  char* src_str = 0;
+	
+  switch (source)
+  {
+    case GL_DEBUG_SOURCE_API: src_str = "API";
+    case GL_DEBUG_SOURCE_WINDOW_SYSTEM: src_str = "WINDOW SYSTEM";
+    case GL_DEBUG_SOURCE_SHADER_COMPILER: src_str = "SHADER COMPILER";
+    case GL_DEBUG_SOURCE_THIRD_PARTY: src_str = "THIRD PARTY";
+    case GL_DEBUG_SOURCE_APPLICATION: src_str = "APPLICATION";
+    case GL_DEBUG_SOURCE_OTHER: src_str = "OTHER";
+  }
+	
+  char* type_str = 0;
+	
+  switch (type)
+  {
+    case GL_DEBUG_TYPE_ERROR: type_str =  "ERROR";
+    case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: type_str =  "DEPRECATED_BEHAVIOR";
+    case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: type_str =  "UNDEFINED_BEHAVIOR";
+    case GL_DEBUG_TYPE_PORTABILITY: type_str =  "PORTABILITY";
+    case GL_DEBUG_TYPE_PERFORMANCE: type_str =  "PERFORMANCE";
+    case GL_DEBUG_TYPE_MARKER: type_str =  "MARKER";
+    case GL_DEBUG_TYPE_OTHER: type_str =  "OTHER";
+  }
+
+  switch (severity)
+  {
+  case GL_DEBUG_SEVERITY_NOTIFICATION: DOLK_INFO("[OPENGL] [%s] [%s] %u: %s\n", src_str, type_str, id, message); 
+  case GL_DEBUG_SEVERITY_LOW: DOLK_INFO("[OPENGL] [%s] [%s] %u: %s\n", src_str, type_str, id, message);;
+  case GL_DEBUG_SEVERITY_MEDIUM: DOLK_WARNING("[OPENGL] [%s] [%s] %u: %s\n", src_str, type_str, id, message);;
+  case GL_DEBUG_SEVERITY_HIGH: DOLK_ERROR("[OPENGL] [%s] [%s] %u: %s\n", src_str, type_str, id, message);;
+  }
+}
+
+void
+OpenGL_SetupDebugOutput()
+{
+  glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, 0, GL_FALSE);
+  glEnable(GL_DEBUG_OUTPUT);
+  glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+  glDebugMessageCallback(OpenGL_DebugMessageCallback, 0);
 }
 
 int
@@ -248,7 +303,8 @@ main() {
   arena appArena = arena_create();
   
   if(!OpenGL_Init(4, 6, 1280, 720, "W Goons")) return -1;
-  KIMBER_INFO("OpenGL Initialized!\n");
+  DOLK_INFO("OpenGL Initialized!\n");
+  OpenGL_SetupDebugOutput();
   OpenGL_SetClearColor(0.9f, 0.2f, 0.4f);
   
   float points[] = {
@@ -258,27 +314,33 @@ main() {
     -0.5f,  0.5f, 0.0f   // top left 
   };
   u32 indices[] = {  // note that we start from 0!
-    0, 1, 3,   // first triangle
-    1, 2, 3    // second triangle
-  };  
+    0, 1, 3,   // first  = 0};  
+    1, 2, 3
+  };
 
-  u32 vertexArrays[1];
-  glCreateVertexArrays(1, &vertexArrays[0]);
-
-  u32 buffers[2];
-  glCreateBuffers(1, &buffers[0]);
-  glNamedBufferStorage(buffers[0], sizeof(points), points, GL_DYNAMIC_STORAGE_BIT);
-
-  glCreateBuffers(1, &buffers[1]);
-  glNamedBufferStorage(buffers[1], sizeof(indices), indices, GL_DYNAMIC_STORAGE_BIT);
+  u64 points_size_aligned = 256;
+  u64 indices_size_aligned = 256;
   
-  glVertexArrayVertexBuffer(vertexArrays[0], 0, buffers[0], 0, sizeof(float)*3);
-  glVertexArrayElementBuffer(vertexArrays[0], buffers[1]);
-
-  glEnableVertexArrayAttrib(vertexArrays[0], 0);
-  glVertexArrayAttribFormat(vertexArrays[0], 0, 3, GL_FLOAT, GL_FALSE, 0);
-  glVertexArrayAttribBinding(vertexArrays[0], 0, 0);
+  u64 points_offset = 0;
+  u64 indices_offset = points_size_aligned;
   
+  u32 buffer;
+  glCreateBuffers(1, &buffer);
+  glNamedBufferStorage(buffer, points_size_aligned + indices_size_aligned, 0, GL_DYNAMIC_STORAGE_BIT);
+
+  glNamedBufferSubData(buffer, points_offset, sizeof(points), points);
+  glNamedBufferSubData(buffer, indices_offset, sizeof(indices), indices);
+  
+  u32 vertexArray;
+  glCreateVertexArrays(1, &vertexArray);
+  glVertexArrayVertexBuffer(vertexArray, 0, buffer, points_offset, sizeof(float)*3);
+  glVertexArrayElementBuffer(vertexArray, buffer);
+  
+  glEnableVertexArrayAttrib(vertexArray, 0);
+  glVertexArrayAttribFormat(vertexArray, 0, 3, GL_FLOAT, GL_FALSE, 0);
+  glVertexArrayAttribBinding(vertexArray, 0, 0);
+  
+  glBindVertexArray(vertexArray);
   u32 testShader = OpenGL_LoadShader("../shaders/test.glsl", &appArena);
   
   while(!glfwWindowShouldClose(OpenGL_Window))
@@ -286,8 +348,8 @@ main() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(testShader);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[1]);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)indices_offset);
     
     glfwSwapBuffers(OpenGL_Window);
     glfwPollEvents();    

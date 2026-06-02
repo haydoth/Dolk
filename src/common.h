@@ -22,6 +22,9 @@
 #define i32 int32_t
 #define i64 int64_t
 
+#define f32 float
+#define f64 double
+
 #define Kilobytes(x) ((x) * 1024)
 #define Megabytes(x) (Kilobytes(x) * 1024)
 #define Gigabytes(x) (Megabytes(x) * 1024)

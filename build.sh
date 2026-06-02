@@ -1,4 +1,7 @@
+
+projname="dolk"
+
 mkdir -p build
-cc -Wall -Wextra -g -o build/chisel\
+cc -Wall -Wextra -g -o build/$projname\
  src/glad.c src/main.c src/linux_arena.c src/linux_file_io.c\
- -lglfw3 -lc -lm -lX11 -lXrandr -lXi -lXcursor -lXinerama -lXxf86vm -lXext -lGL -lpthread -ldl  -Llib -Iinclude -Isrc -DCHISEL_SLOW
+ -lglfw3 -lc -lm -lX11 -lXrandr -lXi -lXcursor -lXinerama -lXxf86vm -lXext -lGL -lpthread -ldl  -Llib -Iinclude -Isrc -DDOLK_SLOW
