@@ -7,7 +7,7 @@
 #define DWORD_MAX_SIZE 4294967295 
 
 bool
-WriteEntireFile(char* path, void* buffer, u64 bufferSize)
+WriteEntireFile(char* path, void* buffer, u32 bufferSize)
 {
   // NOTE: I am unsure what exactly the behavior of CREATE_NEW is compared to CREATE_ALWAYS
   // or if it is possible to do this in 1 call to CreateFileA. However this should suffice for now.

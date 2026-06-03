@@ -14,6 +14,8 @@
 #include "file_io.h"
 #include "sv.h"
 
+#include "dolk.h"
+
 /*
   GAME ARCHITECTURE, courtesy of C. Muratori
   
@@ -281,10 +283,10 @@ OpenGL_DebugMessageCallback(GLenum source, GLenum type, GLuint id,
 
   switch (severity)
   {
-  case GL_DEBUG_SEVERITY_NOTIFICATION: DOLK_INFO("[OPENGL] [%s] [%s] %u: %s\n", src_str, type_str, id, message); 
-  case GL_DEBUG_SEVERITY_LOW: DOLK_INFO("[OPENGL] [%s] [%s] %u: %s\n", src_str, type_str, id, message);;
-  case GL_DEBUG_SEVERITY_MEDIUM: DOLK_WARNING("[OPENGL] [%s] [%s] %u: %s\n", src_str, type_str, id, message);;
-  case GL_DEBUG_SEVERITY_HIGH: DOLK_ERROR("[OPENGL] [%s] [%s] %u: %s\n", src_str, type_str, id, message);;
+  case GL_DEBUG_SEVERITY_NOTIFICATION: DOLK_INFO("[OPENGL] [%s] [%s] %u: %s\n", src_str, type_str, id, message);
+  case GL_DEBUG_SEVERITY_LOW: DOLK_INFO("[OPENGL] [%s] [%s] %u: %s\n", src_str, type_str, id, message);
+  case GL_DEBUG_SEVERITY_MEDIUM: DOLK_WARNING("[OPENGL] [%s] [%s] %u: %s\n", src_str, type_str, id, message);
+  case GL_DEBUG_SEVERITY_HIGH: DOLK_ERROR("[OPENGL] [%s] [%s] %u: %s\n", src_str, type_str, id, message);
   }
 }
 
@@ -342,14 +344,25 @@ main() {
   
   glBindVertexArray(vertexArray);
   u32 testShader = OpenGL_LoadShader("../shaders/test.glsl", &appArena);
-  
+
+  Init();
+
+  f64 lastFrameTime = 0;
+  f64 frameTime = 0;
+  f64 delta = 0;
   while(!glfwWindowShouldClose(OpenGL_Window))
   {
+    frameTime = glfwGetTime();
+    delta = frameTime - lastFrameTime;
+    lastFrameTime = frameTime;
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    
     glUseProgram(testShader);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*)indices_offset);
+
+    Update(delta);
     
     glfwSwapBuffers(OpenGL_Window);
     glfwPollEvents();    

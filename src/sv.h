@@ -63,8 +63,8 @@ typedef struct sv_split_result { string_view Left, Right; } sv_split_result;
 sv_split_result
 sv_split(string_view sv, u64 index) 
 {
-  string_view left = {left.CString, index};
-  string_view right = {left.CString + index, sv.Length - index};
+  string_view left = {sv.CString, index};
+  string_view right = {sv.CString + index, sv.Length - index};
 
   return (sv_split_result) {left, right};
 }

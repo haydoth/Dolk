@@ -1,8 +1,14 @@
 @echo off
 
-set "projname=dolk"
+call "C:\Program Files\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
 
 if not exist build mkdir build
-zig cc -target x86_64-windows-msvc  -Wall -Wextra -o build/%projname%.exe ^
- src/glad.c src/main.c src/win32_arena.c src/win32_file_io.c ^
- -lc -lopengl32 -luser32 -lgdi32 -lshell32 -Llib -lglfw3 -Iinclude -Isrc -DDOLK_SLOW 
+
+cl /nologo /W4 /EHsc /MT ^
+  /I include /I src ^
+  /DDOLK_SLOW ^
+  src\glad.c src\opengl_dolk.c src\win32_arena.c src\win32_file_io.c src\dolk.c ^
+  /Fe:build\dolk.exe ^
+  /link ^
+  /LIBPATH:lib ^
+  glfw3.lib opengl32.lib user32.lib gdi32.lib shell32.lib kernel32.lib
