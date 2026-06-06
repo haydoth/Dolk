@@ -3,6 +3,9 @@
 // Win32
 #include <windows.h>
 
+// Dolk
+#include "sv.h"
+
 
 #define DWORD_MAX_SIZE 4294967295 
 
@@ -29,13 +32,15 @@ WriteEntireFile(char* path, void* buffer, u32 bufferSize)
 }
 
 
+internal file_buffer nil_file_buffer = {0};
+
 file_buffer
 ReadEntireFile(char* path, arena* a) {
   // Get handle
   HANDLE fileHandle = CreateFileA(path, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
 				  0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
 
-  if(fileHandle == INVALID_HANDLE_VALUE) return (file_buffer) {0};
+  if(fileHandle == INVALID_HANDLE_VALUE) return nil_file_buffer;
 
   // Get size of file
   LARGE_INTEGER fileSize;
@@ -49,8 +54,8 @@ ReadEntireFile(char* path, arena* a) {
   DWORD bytesRead = 0;
 
   // Read file
-  if(fileSize.QuadPart >= DWORD_MAX_SIZE) return (file_buffer) {0};
-  if(!ReadFile(fileHandle, buffer, (u32)fileSize.QuadPart, &bytesRead, 0)) return (file_buffer) {0};
+  if(fileSize.QuadPart >= DWORD_MAX_SIZE) return nil_file_buffer;
+  if(!ReadFile(fileHandle, buffer, (u32)fileSize.QuadPart, &bytesRead, 0)) return nil_file_buffer;
 
   CloseHandle(fileHandle);
   return (file_buffer) {buffer, bytesRead};

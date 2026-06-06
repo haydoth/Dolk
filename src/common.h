@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -29,10 +30,27 @@
 #define Megabytes(x) (Kilobytes(x) * 1024)
 #define Gigabytes(x) (Megabytes(x) * 1024)
 
-#ifdef CHISEL_SLOW 
-#define ASSERT(expr) if(!(expr)) {abort();}
+#ifdef DOLK_SLOW 
+#define ASSERT(expr) do {if(!(expr)) {abort();}} while(0)
 #else
 #define ASSERT(expr) 
 #endif
 
+#ifdef DOLK_DO_LOG
+
+#define DOLK_LOG(...)     printf(__VA_ARGS__)
+#define DOLK_INFO(...)    DOLK_LOG("[INFO] "__VA_ARGS__)
+#define DOLK_WARNING(...) DOLK_LOG("[WARNING] "__VA_ARGS__)
+#define DOLK_ERROR(...)   DOLK_LOG("[ERROR] "__VA_ARGS__)
+
+#else
+
+#define DOLK_LOG(...)     
+#define DOLK_INFO(...)    
+#define DOLK_WARNING(...) 
+#define DOLK_ERROR(...)   
+
+#endif
+
 #define UNUSED(x) (void)(x)
+

@@ -1,3 +1,6 @@
-# TODO
+# TODO:
 
-- Rename the project as Chisel is taken by a famous youtuber
+  - Rename the project [x]
+  - Read/write files [x]
+  - Play sounds [x]
+  - 

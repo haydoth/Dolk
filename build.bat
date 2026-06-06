@@ -3,12 +3,19 @@
 call "C:\Program Files\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
 
 if not exist build mkdir build
+if not exist build\obj mkdir build\obj
 
-cl /nologo /W4 /EHsc /MT ^
+cl /Zi /nologo /W4 /EHsc /MT ^
   /I include /I src ^
-  /DDOLK_SLOW ^
-  src\glad.c src\opengl_dolk.c src\win32_arena.c src\win32_file_io.c src\dolk.c ^
+  /D DOLK_SLOW=1 /D DOLK_DO_LOG=1 ^
+  /D AL_LIBTYPE_STATIC=1 ^
+  /D AL_BUILD_LIBRARY=0 ^
+  /D AL_ALEXT_PROTOTYPES ^
+  src\glad.c src\opengl_4_6_dolk.c src\win32_arena.c src\win32_file_io.c src\dolk.c src\audio.c src\wav.c src\sv.c ^
   /Fe:build\dolk.exe ^
+  /Fo:build\obj\ ^
   /link ^
   /LIBPATH:lib ^
-  glfw3.lib opengl32.lib user32.lib gdi32.lib shell32.lib kernel32.lib
+  /LTCG:OFF ^
+  glfw3.lib opengl32.lib user32.lib gdi32.lib shell32.lib kernel32.lib OpenAL32.lib winmm.lib dsound.lib ole32.lib avrt.lib ^
+  

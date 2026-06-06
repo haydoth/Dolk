@@ -23,4 +23,7 @@ void  arena_free (arena* a);
 #define arena_push_many(arena, type, count)\
   arena_push_align((arena), sizeof(type)*(count), ARENA_DEFAULT_ALIGNMENT);
 
+typedef struct arena_temp { arena* Arena; u64 Offset; } arena_temp;
 
+arena_temp arena_temp_begin(arena* _arena);
+void arena_temp_end(arena_temp temp);

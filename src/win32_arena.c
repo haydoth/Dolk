@@ -33,7 +33,7 @@ align_forward(u64 ptr, u64 align) {
 arena
 arena_create() {
 
-  u64 committed = Megabytes(2);
+  u64 committed = Megabytes(64);
   u64 reserved = Gigabytes((u64)64);
   // absurdly large reservation of virtual address space guarantees memory contiguity
   // as arena expands
@@ -71,4 +71,12 @@ arena_clear(arena* a) {
 
 void arena_free(arena* a) {
   VirtualFree(a->Buffer, 0, MEM_RELEASE);
+}
+
+arena_temp arena_temp_begin(arena* _arena) {
+  return (arena_temp) {_arena, _arena->Offset};
+}
+
+void arena_temp_end(arena_temp temp) {
+  temp.Arena->Offset = temp.Offset;
 }
