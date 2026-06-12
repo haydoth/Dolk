@@ -3,6 +3,7 @@
 build
 *_rdbg
 *.zig
+TAGS
 
 ### C
 # Object files

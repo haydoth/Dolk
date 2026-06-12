@@ -3,15 +3,11 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #define global static
 #define internal static
 #define local_persist static
-
-#define true 1
-#define false 0
-
-#define bool int8_t
 
 #define u8  uint8_t
 #define u16 uint16_t

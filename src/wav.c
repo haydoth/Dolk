@@ -35,8 +35,7 @@ ReadWAVBuffer(void* buffer, u32 bufferSize, arena* _arena)
     if(strncmp((const char*)chunk, "data", 4) == 0)
     {
       wav.PCMDataSize = dataSize;
-      wav.PCMData = arena_push(_arena, dataSize);
-      memcpy(wav.PCMData, data, dataSize);
+      wav.PCMData = arena_write(_arena, dataSize, data);
       
       found_data = true;
     }

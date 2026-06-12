@@ -39,6 +39,7 @@ arena_create() {
   // as arena expands
 
   void* buffer = VirtualAlloc(0, reserved, MEM_RESERVE, PAGE_NOACCESS);
+  ASSERT(buffer);
   VirtualAlloc(buffer, committed, MEM_COMMIT, PAGE_READWRITE);
   ASSERT(buffer);
   
@@ -60,6 +61,13 @@ arena_push_align(arena* a, u64 size, u64 alignment)
 
   a->Offset = newOffset;
   return (void*)aligned;
+}
+
+void*
+arena_write_align(arena* a, u64 size, u64 alignment, void* data) {
+  void* ptr = arena_push_align(a, size, alignment);
+  memcpy(ptr, data, size);
+  return ptr;
 }
 
 void

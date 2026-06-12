@@ -11,7 +11,19 @@ cl /Zi /nologo /W4 /EHsc /MT ^
   /D AL_LIBTYPE_STATIC=1 ^
   /D AL_BUILD_LIBRARY=0 ^
   /D AL_ALEXT_PROTOTYPES ^
-  src\glad.c src\opengl_4_6_dolk.c src\win32_arena.c src\win32_file_io.c src\dolk.c src\audio.c src\wav.c src\sv.c ^
+  src\glad.c ^
+  src\opengl_46_dolk.c ^
+  src\opengl_46_buffer.c ^
+  src\opengl_46_vertex_array.c ^
+  src\opengl_46_shader.c ^
+  src\opengl_46_renderer.c ^
+  src\win32_arena.c ^
+  src\win32_file_io.c ^
+  src\dolk.c ^
+  src\audio.c ^
+  src\wav.c ^
+  src\sv.c ^
+  src\obj.c ^
   /Fe:build\dolk.exe ^
   /Fo:build\obj\ ^
   /link ^
@@ -19,3 +31,4 @@ cl /Zi /nologo /W4 /EHsc /MT ^
   /LTCG:OFF ^
   glfw3.lib opengl32.lib user32.lib gdi32.lib shell32.lib kernel32.lib OpenAL32.lib winmm.lib dsound.lib ole32.lib avrt.lib ^
   
+"build/dolk"

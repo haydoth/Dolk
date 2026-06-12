@@ -53,7 +53,6 @@ u32 Audio_CreateSource(u32 buffer) {
 
   u32 source = 0;
   alGenSources(1, &source);
-  alSourcef(source, AL_GAIN, 0.1f);
   alSourcei(source, AL_BUFFER, buffer);
   return source;
 }
@@ -62,5 +61,24 @@ void
 Audio_PlaySource(u32 source) {
 
   alSourcePlay(source);
-  
+}
+
+
+void Audio_SourceSetBuffer(u32 source, u32 buffer) {
+  alSourcei(source, AL_BUFFER, buffer);
+}
+void Audio_SourceSetGain(u32 source, f32 gain) {
+  alSourcef(source, AL_GAIN, gain);
+}
+void Audio_SourceSetPitch(u32 source, f32 pitch) {
+  alSourcef(source, AL_PITCH, pitch);
+}
+void Audio_SourceSetLooping(u32 source, bool looping) {
+  alSourcei(source, AL_LOOPING, looping);
+}
+void Audio_SourceSetPosition(u32 source, vec3 position) {
+  alSource3f(source, AL_POSITION, position[0], position[1], position[2]);
+}
+void Audio_SourceSetVelocity(u32 source, vec3 velocity) {
+  alSource3f(source, AL_VELOCITY, velocity[0], velocity[1], velocity[2]);
 }

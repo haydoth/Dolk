@@ -72,17 +72,19 @@ sv_split_by_delim(string_view sv, char delim, bool includeDelim)
   while(index < sv.Length) {
 
     if(sv.CString[index] == delim) {
+      //if(last == index - 1) {++last; ++index; continue;}
       if(last > 0 && !includeDelim) ++last;
-      string_view left = {sv.CString + last, index - last};
-      da_append(result, left);
+      string_view token = {sv.CString + last, index - last};
+      da_append(result, token);
       last = index;
     }
 
     ++index; 
   }
+
   if(last > 0 && !includeDelim) ++last;
-  string_view right = {sv.CString + last, index};
-  da_append(result, right);
+  string_view token = {sv.CString + last, index - last};
+  da_append(result, token);
   
   return result;
 }
