@@ -16,14 +16,14 @@ TAGS
 *.pch
 
 # Libraries
-*.lib
-*.a
-*.la
-*.lo
-*.dll
-*.so
-*.so.*
-*.dylib
+#*.lib
+#*.a
+#*.la
+#*.lo
+#*.dll
+#*.so
+#*.so.*
+#*.dylib
 
 # Executables
 *.exe
