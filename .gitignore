@@ -8,7 +8,7 @@ TAGS
 ### C
 # Object files
 *.o
-*.obj
+# *.obj
 *.elf
 
 # Precompiled Headers
