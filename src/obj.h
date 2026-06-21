@@ -5,9 +5,9 @@
 #include "arena.h"
 
 typedef struct {
-  da(f32) Vertices;
-  da(u32) Indices;
-  da(u32) Format;
+  F32s Vertices;
+  U32s Indices;
+  U32s Format;
 } obj_data;
 
-obj_data ReadOBJBuffer(void* buffer, u64 bufferSize);
+obj_data ReadOBJBuffer(void* buffer, u64 bufferSize, arena* _arena);

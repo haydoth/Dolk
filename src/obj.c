@@ -1,10 +1,14 @@
 #include "obj.h"
+#include "sv.h"
+#include "ht.h"
 
+// STD
 #include <stdlib.h>
 #include <math.h>
+
+// CGLM
 #include <cglm/struct.h>
 
-#include "sv.h"
 
 u32
 sv_to_u32(string_view sv) {
@@ -52,124 +56,182 @@ sv_to_f32(string_view sv) {
   return (ret + fractional) * multiplier;
 }
 
-typedef struct {u32 v, vt, vn, index;} obj_index;
+#define szudzik(a, b) a >= b ? a * a + a + b : a + b * b
+#define hash_u32_3(a, b, c) szudzik(szudzik(a, b), c)
+
+typedef struct {
+  ht_header Header;
+  u32 v, vt, vn, index;
+} obj_index;
+
+typedef struct {
+  obj_index* Items;
+  u64 Count;
+  u64 Capacity;
+} OBJIndices;
 
 internal u32
-obj_index_lookup(u32 v, u32 vt, u32 vn, da(obj_index) objIndices) {
-  for(u64 i = 0; i < da_len(objIndices); ++i) {
-    obj_index index = objIndices[i];
-    if(index.v == v && index.vt == vt && index.vn == vn) return index.index; 
-  }
-  return 0;
+obj_index_lookup(u32 v, u32 vt, u32 vn, OBJIndices objIndices) {
+
+ obj_index* ret = ht_find(&objIndices, (u64)hash_u32_3(v, vt, vn));
+ if(ret) return ret->index; else return 0;
 }
 
+typedef struct {
+  vec3s *Items;
+  u64 Count;
+  u64 Capacity;
+} Vector3s;
+
+typedef struct {
+  vec2s *Items;
+  u64 Count;
+  u64 Capacity;
+} Vector2s;
+
 obj_data
-ReadOBJBuffer(void* buffer, u64 bufferSize) {
-    
+ReadOBJBuffer(void* buffer, u64 bufferSize, arena* _arena) {
+
+  ASSERT(buffer);
   string_view str = {(char*)buffer, bufferSize};
-  da(string_view) lines = sv_split_by_delim(str, '\n', false);
 
   obj_data data = {0};
-
   arena scratch = get_scratch();
   
-  vec3s *positions = 0, *normals = 0;
-  vec2s *textureCoordinates = 0;
-
-  list_init(positions, 100000, &scratch);
-  list_init(textureCoordinates, 100000, &scratch);
-  list_init(normals, 100000, &scratch);
+  Vector3s positions = {0};
+  Vector3s normals = {0};
+  Vector2s textureCoordinates = {0};
   
-  u32 *positionIndices = 0, *textureCoordinateIndices = 0, *normalIndices = 0;
+  U32s positionIndices = {0};
+  U32s textureCoordinateIndices = {0};
+  U32s normalIndices = {0};
 
-  list_init(positionIndices, 500000, &scratch);
-  list_init(textureCoordinateIndices, 500000, &scratch);
-  list_init(normalIndices, 500000, &scratch);
-  
-  for(u64 i = 0; i < da_len(lines); ++i) {
-    
-    string_view line = lines[i];
-    sv_trim(&line);
+  u64 lineIndex = 0;
+  while(str.Length > 0) {
+    //DOLK_LOG("Analyzing line %llu...\n", lineIndex);
+    lineIndex++;
+    string_view line = sv_split(&str, '\n', false);
 
-    da(string_view) words = sv_split_by_delim(line, ' ', false);
-    if(sv_cmp(words[0], sv("v"))) {
-      //DOLK_LOG("%f, %f, %f\n", sv_to_f32(words[1]), sv_to_f32(words[2]), sv_to_f32(words[3]));
-      vec3s pos = {sv_to_f32(words[1]), sv_to_f32(words[2]), sv_to_f32(words[3])};
-      da_append(positions, pos);
-    }
-    else if(sv_cmp(words[0], sv("vn"))) {
-
-      vec3s normal  = {sv_to_f32(words[1]), sv_to_f32(words[2]), sv_to_f32(words[3])};      
-      da_append(normals, normal);
-    }
-    else if(sv_cmp(words[0], sv("vt"))) {
+    //DOLK_LOG(SV_Fmt"\n", SV_Arg(line));
+    while(line.Length > 0) {
+      //DOLK_LOG("Line length: %llu\n", line.Length);
+      string_view word0 = sv_split(&line, ' ', false);
+      string_view word1 = sv_split(&line, ' ', false);
+      string_view word2 = sv_split(&line, ' ', false);
+      string_view word3 = sv_split(&line, ' ', false);
+      //DOLK_LOG("|"SV_Fmt"| |"SV_Fmt"| |"SV_Fmt"| |"SV_Fmt"|\n", SV_Arg(word0), SV_Arg(word1), SV_Arg(word2), SV_Arg(word3));
+      sv_trim(&word0);
+      sv_trim(&word1);
+      sv_trim(&word2);
+      sv_trim(&word3);
       
-      vec2s texCoord = {sv_to_f32(words[1]), sv_to_f32(words[2])};
-      da_append(textureCoordinates, texCoord);
-    }
-    else if(sv_cmp(words[0], sv("f"))) {
-      
-      for(u64 j = 1; j < 4; ++j) {
-	da(string_view) vertex = sv_split_by_delim(words[j], '/', false);
-	string_view posIndex = vertex[0];
-	string_view tcIndex = vertex[1];
-	string_view normIndex = vertex[2];
-	// DOLK_LOG(SV_Fmt", "SV_Fmt"\n", SV_Arg(words[j]), SV_Arg(posIndex));
-	da_append(positionIndices, sv_to_u32(posIndex));
-	if(tcIndex.Length > 0) da_append(textureCoordinateIndices, sv_to_u32(tcIndex));
-	da_append(normalIndices, sv_to_u32(normIndex));
+      if(sv_cmp(word0, sv("v"))) {
+	vec3s pos = {sv_to_f32(word1), sv_to_f32(word2), sv_to_f32(word3)};
+	*da_append(positions, &scratch) = pos;
+      }
+      else if(sv_cmp(word0, sv("vt"))) {
+	vec2s tc = {sv_to_f32(word1), sv_to_f32(word2)};
+	*da_append(textureCoordinates, &scratch) = tc;
+      }
+      else if(sv_cmp(word0, sv("vn"))) {
+	vec3s nrm = {sv_to_f32(word1), sv_to_f32(word2), sv_to_f32(word3)};
+	*da_append(normals, &scratch) = nrm;
+      }
+      else if(sv_cmp(word0, sv("f"))) {
+	string_view pi0 = sv_split(&word1, '/', false);
+	string_view tci0 = sv_split(&word1, '/', false);
+	string_view ni0 = sv_split(&word1, '/', false);
+
+	string_view pi1 = sv_split(&word2, '/', false);
+	string_view tci1 = sv_split(&word2, '/', false);
+	string_view ni1 = sv_split(&word2, '/', false);
+
+	string_view pi2 = sv_split(&word3, '/', false);
+	string_view tci2 = sv_split(&word3, '/', false);
+	string_view ni2 = sv_split(&word3, '/', false);
+
+	sv_trim(&pi0); sv_trim(&tci0); sv_trim(&ni0);
+	sv_trim(&pi1); sv_trim(&tci1); sv_trim(&ni1);
+	sv_trim(&pi2); sv_trim(&tci2); sv_trim(&ni2);
+
+	*da_append(positionIndices, &scratch) = sv_to_u32(pi0) ;
+	*da_append(positionIndices, &scratch) = sv_to_u32(pi1) ;
+	*da_append(positionIndices, &scratch) = sv_to_u32(pi2) ;
+
+	if(tci0.Length > 0 && tci1.Length > 0 && tci2.Length > 0) {
+	  *da_append(textureCoordinateIndices, &scratch) = sv_to_u32(tci0);
+	  *da_append(textureCoordinateIndices, &scratch) = sv_to_u32(tci1);
+	  *da_append(textureCoordinateIndices, &scratch) = sv_to_u32(tci2);
+	}
+	*da_append(normalIndices, &scratch) = sv_to_u32(ni0);
+	*da_append(normalIndices, &scratch) = sv_to_u32(ni1);
+	*da_append(normalIndices, &scratch) = sv_to_u32(ni2);
       }
     }
-    else {
-      DOLK_INFO("OBJ parser ignored line: "SV_Fmt"\n", SV_Arg(line));
-    }
-    da_free(words);
   }
-
-  da(obj_index) lookup_list = 0;
   
-  bool hasUVs = da_len(textureCoordinateIndices) > 0;
+  OBJIndices lookupList = {0};
+  
+  bool hasUVs = textureCoordinateIndices.Count > 0;
   if(hasUVs) {
-    for(u64 i = 0; i < da_len(positionIndices); ++i) {
-      u32 v = positionIndices[i];
-      u32 vt = textureCoordinateIndices[i];
-      u32 vn = normalIndices[i];
+    for(u64 i = 0; i < positionIndices.Count; ++i) {
+      u32 v = positionIndices.Items[i];
+      u32 vt = textureCoordinateIndices.Items[i];
+      u32 vn = normalIndices.Items[i];
 
-      u32 ret = obj_index_lookup(v, vt, vn, lookup_list);
+      u32 ret = obj_index_lookup(v, vt, vn, lookupList);
       if(ret) {
-	da_append(data.Indices, ret);
+	*da_append(data.Indices, _arena) = ret;
       }
       else {
-	da_append(data.Indices, (u32)da_len(lookup_list));
-	obj_index objIndex = {v, vt, vn, (u32)da_len(lookup_list)};
-	da_append(lookup_list, objIndex);
-	da_append(data.Vertices, positions[v - 1].x);
-	da_append(data.Vertices, positions[v - 1].y);
-	da_append(data.Vertices, positions[v - 1].z);
-      
-	da_append(data.Vertices, textureCoordinates[vt - 1].x);
-	da_append(data.Vertices, textureCoordinates[vt - 1].y);
+	*da_append(data.Indices, _arena) = (u32)lookupList.Count;
+	obj_index objIndex = {v, vt, vn, (u32)lookupList.Count};
+	*da_append(lookupList, _arena) = objIndex;
+	//ht_insert(&lookupList, _arena, (u64)hash_u32_3(v, vt, vn), &objIndex);
 
-	da_append(data.Vertices, normals[vn - 1].x);
-	da_append(data.Vertices, normals[vn - 1].y);
-	da_append(data.Vertices, normals[vn - 1].z);
+	*da_append(data.Vertices, _arena) = positions.Items[v - 1].x;
+	*da_append(data.Vertices, _arena) = positions.Items[v - 1].y;
+	*da_append(data.Vertices, _arena) = positions.Items[v - 1].z;
+	*da_append(data.Vertices, _arena) = textureCoordinates.Items[vt - 1].x;
+	*da_append(data.Vertices, _arena) = textureCoordinates.Items[vt - 1].y;
+	*da_append(data.Vertices, _arena) = normals.Items[vn - 1].x;
+	*da_append(data.Vertices, _arena) = normals.Items[vn - 1].y;
+	*da_append(data.Vertices, _arena) = normals.Items[vn - 1].z;
       }
     }
 
-    da_append(data.Format, 3);
-    da_append(data.Format, 2);
-    da_append(data.Format, 3);
+    *da_append(data.Format, _arena) = 3;
+    *da_append(data.Format, _arena) = 2;
+    *da_append(data.Format, _arena) = 3;
   }
   else {    
 
-    DOLK_INFO("Kill yourself");
-    ASSERT(false);
+    for(u64 i = 0; i < positionIndices.Count; ++i) {
+      u32 v = positionIndices.Items[i];
+      u32 vn = normalIndices.Items[i];
 
-    da_append(data.Format, 3);
-    da_append(data.Format, 3);
+      u32 ret = obj_index_lookup(v, 0, vn, lookupList);
+      if(ret) {
+	*da_append(data.Indices, _arena) = ret;
+      }
+      else {
+	*da_append(data.Indices, _arena) = (u32)lookupList.Count;
+	obj_index objIndex = {v, 0, vn, (u32)lookupList.Count};
+	*da_append(lookupList, _arena) = objIndex;
+	  //ht_insert(&lookupList, _arena, (u64)hash_u32_3(v, 0, vn), &objIndex);
+
+	*da_append(data.Vertices, _arena) = positions.Items[v - 1].x;
+	*da_append(data.Vertices, _arena) = positions.Items[v - 1].y;
+	*da_append(data.Vertices, _arena) = positions.Items[v - 1].z;
+	*da_append(data.Vertices, _arena) = normals.Items[vn - 1].x;
+	*da_append(data.Vertices, _arena) = normals.Items[vn - 1].y;
+	*da_append(data.Vertices, _arena) = normals.Items[vn - 1].z;
+      }
+    }    
+    *da_append(data.Format, _arena) = 3;
+    *da_append(data.Format, _arena) = 3;
   }
 
-  da_free(lookup_list);
-  
+  release_scratch(&scratch);
   return data;
 }

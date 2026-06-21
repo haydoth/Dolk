@@ -3,51 +3,40 @@
 #include "glad/glad.h"
 
 typedef struct opengl_shader_source {
-  da(i32) VertexStringLengths;
-  da(i32) FragmentStringLengths;
-  da(const char*) VertexStrings;
-  da(const char*) FragmentStrings;
+  CStrings VertexStrings;
+  CStrings FragmentStrings;
+  I32s VertexStringLengths;
+  I32s FragmentStringLengths;
 } opengl_shader_source;
 
-
 internal opengl_shader_source
-ProcessShaderString(string_view inputStr)
+ProcessShaderString(string_view inputStr, arena* _arena)
 {
-  //DOLK_INFO("Processing shader source input...\n");
-
-  da(string_view) lines = sv_split_by_delim(inputStr, '\n', true);
-  opengl_shader_source result = {0};
-  
+  opengl_shader_source result = {0};  
   int currentlySelected = 0;
-  //DOLK_LOG("%zu\n", da_len(lines));
-  //ASSERT(false);
-  for(u64 lineIndex = 0; lineIndex < da_len(lines); ++lineIndex) {
-    string_view line = lines[lineIndex];
-    sv_trim(&line); // Necessary in order to properly check against our tokens
+  
+  while(inputStr.Length > 0) {
+    string_view line = sv_split(&inputStr, '\n', true);
+    string_view copy = line;
+    sv_trim(&copy); 
 
-    //DOLK_LOG("lineIndex: %zu, mode: %i |"SV_Fmt"|\n", lineIndex, currentlySelected, SV_Arg(line));
+    if(sv_cmp(copy, sv("#vertex"))) {
+      currentlySelected = 1;
+      continue;
+    }
+    if(sv_cmp(copy, sv("#fragment"))) {
+      currentlySelected = 2;
+      continue;
+    }
 
-    if(sv_cmp(line, sv("#vertex"))) {
-      currentlySelected = 1; continue;
-    }
-    if(sv_cmp(line, sv("#fragment"))) {
-      currentlySelected = 2; continue;
-    }
-
-    // Re-adds the newline removed by sv_trim
-    while(lineIndex < da_len(lines) - 1 && line.Length > 0 && line.CString[line.Length - 1] != '\n')
-    {
-      line.Length += 1; 
-    }
-    
     switch(currentlySelected) {
     case 1: {
-      da_append(result.VertexStrings, line.CString);
-      da_append(result.VertexStringLengths, (i32)line.Length); 
+      *da_append(result.VertexStrings, _arena) = line.CString;
+      *da_append(result.VertexStringLengths, _arena) = (i32)line.Length; 
     } break;
     case 2: {
-      da_append(result.FragmentStrings, line.CString);
-      da_append(result.FragmentStringLengths, (i32)line.Length); 
+      *da_append(result.FragmentStrings, _arena) = line.CString;
+      *da_append(result.FragmentStringLengths, _arena) = (i32)line.Length; 
     } break;
     default: break;
     }
@@ -57,18 +46,16 @@ ProcessShaderString(string_view inputStr)
 }
 
 u32
-OpenGL_CreateShaderFromGLSLBuffer(void* buffer, u64 bufferSize) {
+OpenGL_CreateShaderFromGLSLBuffer(void* buffer, u64 bufferSize, arena* _arena) {
     
   string_view file_str = {(char*)buffer, bufferSize};
-  opengl_shader_source src = ProcessShaderString(file_str);
+  opengl_shader_source src = ProcessShaderString(file_str, _arena);
 
-  //DOLK_INFO("Compiling shader source...\n");
   int success;
   
   u32 vertexShader;
   vertexShader = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(vertexShader, (GLsizei)da_len(src.VertexStrings),
-      	   src.VertexStrings, src.VertexStringLengths);
+  glShaderSource(vertexShader, (GLsizei)src.VertexStrings.Count, src.VertexStrings.Items, src.VertexStringLengths.Items);
   glCompileShader(vertexShader);
   
   glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
@@ -80,8 +67,7 @@ OpenGL_CreateShaderFromGLSLBuffer(void* buffer, u64 bufferSize) {
   
   u32 fragmentShader;
   fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(fragmentShader, (GLsizei)da_len(src.FragmentStrings),
-      	   src.FragmentStrings, src.FragmentStringLengths);
+  glShaderSource(fragmentShader, (GLsizei)src.FragmentStrings.Count, src.FragmentStrings.Items, src.FragmentStringLengths.Items);
   glCompileShader(fragmentShader);
 
   glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);

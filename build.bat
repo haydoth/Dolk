@@ -1,13 +1,13 @@
 @echo off
 
-call "C:\Program Files\Microsoft Visual Studio\18\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
+call vcvars64
 
 if not exist build mkdir build
 if not exist build\obj mkdir build\obj
 
 cl /Zi /nologo /W4 /EHsc /MT ^
   /I include /I src ^
-  /D DOLK_SLOW=1 /D DOLK_DO_LOG=1 ^
+  /D DOLK_DO_ASSERT=1 /D DOLK_DO_LOG=1 ^
   /D AL_LIBTYPE_STATIC=1 ^
   /D AL_BUILD_LIBRARY=0 ^
   /D AL_ALEXT_PROTOTYPES ^
@@ -24,6 +24,7 @@ cl /Zi /nologo /W4 /EHsc /MT ^
   src\wav.c ^
   src\sv.c ^
   src\obj.c ^
+  src\da.c ^
   /Fe:build\dolk.exe ^
   /Fo:build\obj\ ^
   /link ^
@@ -31,4 +32,3 @@ cl /Zi /nologo /W4 /EHsc /MT ^
   /LTCG:OFF ^
   glfw3.lib opengl32.lib user32.lib gdi32.lib shell32.lib kernel32.lib OpenAL32.lib winmm.lib dsound.lib ole32.lib avrt.lib ^
   
-"build/dolk"

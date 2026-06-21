@@ -42,6 +42,7 @@ arena_create() {
   ASSERT(buffer);
   VirtualAlloc(buffer, committed, MEM_COMMIT, PAGE_READWRITE);
   ASSERT(buffer);
+  memset(buffer, 0, committed);
   
   return (arena) {(u8*)buffer, 0, committed, reserved};
 }
@@ -60,6 +61,7 @@ arena_push_align(arena* a, u64 size, u64 alignment)
   }
 
   a->Offset = newOffset;
+  memset((void*)aligned, 0, size);
   return (void*)aligned;
 }
 

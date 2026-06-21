@@ -26,8 +26,10 @@
 #define Megabytes(x) (Kilobytes(x) * 1024)
 #define Gigabytes(x) (Megabytes(x) * 1024)
 
-#ifdef DOLK_SLOW 
-#define ASSERT(expr) do {if(!(expr)) {abort();}} while(0)
+#define IS_POWER_OF_TWO(x) ((x & (x - 1)) == 0)
+
+#ifdef DOLK_DO_ASSERT 
+#define ASSERT(expr) ((expr) ? (void)0 : abort())
 #else
 #define ASSERT(expr) 
 #endif

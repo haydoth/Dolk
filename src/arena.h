@@ -24,7 +24,7 @@ void  arena_free (arena* a);
 #define arena_push_many(arena, type, count)\
   arena_push_align((arena), sizeof(type)*(count), ARENA_DEFAULT_ALIGNMENT)
 
-#define arena_write(arena, size, data)				\
+#define arena_write(arena, size, data)\
   arena_write_align((arena), (size), ARENA_DEFAULT_ALIGNMENT, (data))
 
 typedef struct arena_temp { arena* Arena; u64 Offset; } arena_temp;

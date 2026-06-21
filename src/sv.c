@@ -44,16 +44,6 @@ sv_trim(string_view* sv)
   sv_trim_right(sv);
 }
 
-
-sv_split_result
-sv_split(string_view sv, u64 index) 
-{
-  string_view left = {sv.CString, index};
-  string_view right = {sv.CString + index, sv.Length - index};
-
-  return (sv_split_result) {left, right};
-}
-
 bool
 sv_cmp(string_view a, string_view b)
 {
@@ -62,29 +52,19 @@ sv_cmp(string_view a, string_view b)
   return (strncmp(a.CString, b.CString, a.Length) == 0);
 }
 
-da(string_view)
-sv_split_by_delim(string_view sv, char delim, bool includeDelim)
+string_view
+sv_split(string_view* sv, char delim, bool includeDelim)
 {
-  da(string_view) result = 0;
   u64 index = 0;
-  u64 last = 0;
-  
-  while(index < sv.Length) {
-
-    if(sv.CString[index] == delim) {
-      //if(last == index - 1) {++last; ++index; continue;}
-      if(last > 0 && !includeDelim) ++last;
-      string_view token = {sv.CString + last, index - last};
-      da_append(result, token);
-      last = index;
+  while(index < sv->Length) {
+    if(sv->CString[index] == delim) {
+      string_view result = {sv->CString, index + includeDelim};
+      sv_chop_left(sv, index + 1);
+      return result;
     }
-
     ++index; 
   }
-
-  if(last > 0 && !includeDelim) ++last;
-  string_view token = {sv.CString + last, index - last};
-  da_append(result, token);
-  
+  string_view result = *sv;
+  sv_chop_left(sv, index);
   return result;
 }

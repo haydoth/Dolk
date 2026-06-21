@@ -6,25 +6,25 @@
 // NOTE: format is a dynamic array of float counts
 
 u32
-OpenGL_CreateVertexArray(u32 buffer, u64 verticesOffset, da(u32) format) {
+OpenGL_CreateVertexArray(u32 buffer, u64 verticesOffset, U32s format) {
   
   u32 vertexArray;
   glCreateVertexArrays(1, &vertexArray);
-  glVertexArrayVertexBuffer(vertexArray, 0, buffer, verticesOffset, sizeof(float)*8);
+  u32 floatCount = 0;
+  for(u64 i = 0; i < format.Count; ++i) floatCount += format.Items[i];
+  glVertexArrayVertexBuffer(vertexArray, 0, buffer, verticesOffset, sizeof(float)*floatCount);
   glVertexArrayElementBuffer(vertexArray, buffer);
 
   u32 currentOffset = 0;
   u32 currentByteSize = 0;
-  for(u32 i = 0; i < da_len(format); ++i) {
+  for(u32 i = 0; i < format.Count; ++i) {
 
-    currentByteSize = format[i] * sizeof(float);
+    currentByteSize = format.Items[i] * sizeof(float);
     
     glEnableVertexArrayAttrib(vertexArray, i);
-    glVertexArrayAttribFormat(vertexArray, i, format[i],
-			      GL_FLOAT, GL_FALSE, currentOffset);
+    glVertexArrayAttribFormat(vertexArray, i, format.Items[i], GL_FLOAT, GL_FALSE, currentOffset);
     glVertexArrayAttribBinding(vertexArray, i, 0); // we only have 1 buffer so bind to 0
 
-    DOLK_LOG("float count: %lu, offset: %lu\n", format[i], currentOffset);
     currentOffset += currentByteSize;
   }
   return vertexArray;

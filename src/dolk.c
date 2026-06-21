@@ -32,12 +32,12 @@ LoadOBJ(char* path, arena* _arena, u32* renderBuffer, u64* indicesOffset, u64* n
   arena_temp temp = arena_temp_begin(_arena);
 
   file_buffer buf = ReadEntireFile(path, _arena);
-  obj_data data = ReadOBJBuffer(buf.Buffer, buf.Size);
-  *numIndices = da_len(data.Indices);
+  obj_data data = ReadOBJBuffer(buf.Buffer, buf.Size, _arena);
+  *numIndices = data.Indices.Count;
   
   u64 verticesOffset = 0; 
-  *renderBuffer = OpenGL_CreateRenderBuffer(data.Vertices, da_len(data.Vertices) * sizeof(f32),
-					    data.Indices, da_len(data.Indices) * sizeof(u32),
+  *renderBuffer = OpenGL_CreateRenderBuffer(data.Vertices.Items, data.Vertices.Count * sizeof(f32),
+					    data.Indices.Items, data.Indices.Count * sizeof(u32),
 					    &verticesOffset, indicesOffset);
   u32 vertexArray = OpenGL_CreateVertexArray(*renderBuffer, verticesOffset, data.Format);
 
@@ -51,7 +51,7 @@ LoadGLSL(char* path, arena* _arena) {
   arena_temp temp = arena_temp_begin(_arena);
 
   file_buffer buf = ReadEntireFile(path, _arena);
-  u32 shader = OpenGL_CreateShaderFromGLSLBuffer(buf.Buffer, buf.Size);
+  u32 shader = OpenGL_CreateShaderFromGLSLBuffer(buf.Buffer, buf.Size, _arena);
 
   arena_temp_end(temp); // free memory allocated by ReadX calls since it's now in the OpenGL buffer
   return shader;
@@ -73,7 +73,7 @@ Init() {
   Audio_SourceSetLooping(audioSource, true);
   Audio_SourceSetGain(audioSource, 0.05f);
   Audio_SourceSetPitch(audioSource, 1.0f);
-  Audio_PlaySource(audioSource);
+  //Audio_PlaySource(audioSource);
 
   vertexArray = LoadOBJ("../res/lucy.obj", &myArena, &renderBuffer, &indicesOffset, &numIndices);
   OpenGL_BindVertexArray(vertexArray);
@@ -83,7 +83,7 @@ Init() {
   glm_mat4_identity(model);
   glm_mat4_identity(view);
   glm_mat4_identity(proj);
-  glm_translate(model, (vec3) {0, 0, -3});
+  glm_translate(model, (vec3) {0, -80, -150});
   glm_look(pos, lookDir, upDir, view);
   glm_perspective(glm_rad(75.0f), 16.0f / 9.0f, 0.1f, 3000.0f, proj);
   glm_mat4_mul(proj, view, view);
