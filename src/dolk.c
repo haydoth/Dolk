@@ -11,6 +11,7 @@
 #include "vertex_array.h"
 #include "renderer.h"
 #include "shader.h"
+#include "window.h"
 
 u32
 LoadWAV(char* path, arena* _arena) {
@@ -51,11 +52,20 @@ LoadGLSL(char* path, arena* _arena) {
   arena_temp temp = arena_temp_begin(_arena);
 
   file_buffer buf = ReadEntireFile(path, _arena);
-  u32 shader = OpenGL_CreateShaderFromGLSLBuffer(buf.Buffer, buf.Size, _arena);
+  u32 shader = CreateShaderFromGLSLBuffer(buf.Buffer, buf.Size, _arena);
 
   arena_temp_end(temp); // free memory allocated by ReadX calls since it's now in the OpenGL buffer
   return shader;
   
+}
+
+void
+SetColorScheme(u32 shader, vec3 light, vec3 bg, float ambientStrength) {
+  SetClearColorV(bg);
+  UseShader(shader);
+  ShaderSetUniformFloat(shader, "AMBIENT_STRENGTH", ambientStrength);
+  ShaderSetUniformVec3(shader, "AMBIENT_COLOR", bg);
+  ShaderSetUniformVec3(shader, "LIGHT_COLOR", light);
 }
 
 global u32 vertexArray, renderBuffer, testShader;
@@ -87,18 +97,23 @@ Init() {
   glm_look(pos, lookDir, upDir, view);
   glm_perspective(glm_rad(75.0f), 16.0f / 9.0f, 0.1f, 3000.0f, proj);
   glm_mat4_mul(proj, view, view);
-  OpenGL_UseShader(testShader);
-  OpenGL_ShaderSetUniformMat4(testShader, "MODEL_MATRIX", model);
-  OpenGL_ShaderSetUniformMat4(testShader, "VIEW_MATRIX", view);
+
+  UseShader(testShader);
+  ShaderSetUniformMat4(testShader, "MODEL_MATRIX", model);
+  ShaderSetUniformMat4(testShader, "VIEW_MATRIX", view);
+  
+  vec3 light = {0.0f, 0.67f, 1.0f}, bg = {1.0f, 0.0f, 0.5f};
+  vec3 light2 = {1.0f, 1.0f, 1.0f}, bg2 = {0.0f, 0.0f, 0.0f};
+  SetColorScheme(testShader, light, bg, 0.2f);
 }
 
 void
 Update(f64 delta)
 {
-  glm_rotate_y(model, glm_rad(8.0f * (f32)delta), model);
+  glm_rotate_y(model, glm_rad(16.0f * (f32)delta), model);
   
-  OpenGL_UseShader(testShader);
-  OpenGL_ShaderSetUniformMat4(testShader, "MODEL_MATRIX", model);
+  UseShader(testShader);
+  ShaderSetUniformMat4(testShader, "MODEL_MATRIX", model);
   OpenGL_BindIndexBuffer(renderBuffer);
   OpenGL_DrawVertexArray(vertexArray, indicesOffset, numIndices);
 }

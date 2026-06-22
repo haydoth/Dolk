@@ -17,6 +17,7 @@ cl /Zi /nologo /W4 /EHsc /MT ^
   src\opengl_46_vertex_array.c ^
   src\opengl_46_shader.c ^
   src\opengl_46_renderer.c ^
+  src\opengl_46_window.c ^
   src\win32_arena.c ^
   src\win32_file_io.c ^
   src\dolk.c ^

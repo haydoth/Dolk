@@ -32,5 +32,5 @@ typedef struct arena_temp { arena* Arena; u64 Offset; } arena_temp;
 arena_temp arena_temp_begin(arena* _arena);
 void arena_temp_end(arena_temp temp);
 
-#define get_scratch() arena_create()
-#define release_scratch(arena) arena_free((arena))
+arena_temp GetScratch(arena **conflicts, u64 conflictCount);
+#define ReleaseScratch(temp) arena_temp_end((temp))

@@ -45,11 +45,8 @@ ProcessShaderString(string_view inputStr, arena* _arena)
   return result;
 }
 
-u32
-OpenGL_CreateShaderFromGLSLBuffer(void* buffer, u64 bufferSize, arena* _arena) {
-    
-  string_view file_str = {(char*)buffer, bufferSize};
-  opengl_shader_source src = ProcessShaderString(file_str, _arena);
+internal u32
+CompileShaderSource(opengl_shader_source src) {
 
   int success;
   
@@ -91,21 +88,41 @@ OpenGL_CreateShaderFromGLSLBuffer(void* buffer, u64 bufferSize, arena* _arena) {
     DOLK_ERROR("Failed to link shader program:\n%s\n", infoLog);
   }    
 
-  glUseProgram(shaderProgram);
-  
   glDeleteShader(vertexShader);
   glDeleteShader(fragmentShader);
+  
+  return shaderProgram;
+}
 
+u32
+CreateShaderFromGLSLBuffer(void* buffer, u64 bufferSize, arena* _arena) {
+    
+  string_view file_str = {(char*)buffer, bufferSize};
+  opengl_shader_source src = ProcessShaderString(file_str, _arena);
+  u32 shaderProgram = CompileShaderSource(src);
+    
   return shaderProgram;
 }
 
 void
-OpenGL_UseShader(u32 shader) {
+UseShader(u32 shader) {
   glUseProgram(shader);
 }
 
 void
-OpenGL_ShaderSetUniformMat4(u32 shader, const char* name, mat4 matrix) {
+ShaderSetUniformFloat(u32 shader, const char* name, float value) {
+  GLuint location = glGetUniformLocation(shader, name);
+  glUniform1f(location, value);
+}
+
+void
+ShaderSetUniformVec3(u32 shader, const char* name, vec3 vector) {
+  GLuint location = glGetUniformLocation(shader, name);
+  glUniform3fv(location, 1, vector);
+}
+
+void
+ShaderSetUniformMat4(u32 shader, const char* name, mat4 matrix) {
   GLuint location = glGetUniformLocation(shader, name);
   glUniformMatrix4fv(location, 1, GL_FALSE, matrix[0]);
 }

@@ -96,7 +96,8 @@ ReadOBJBuffer(void* buffer, u64 bufferSize, arena* _arena) {
   string_view str = {(char*)buffer, bufferSize};
 
   obj_data data = {0};
-  arena scratch = get_scratch();
+  
+  arena_temp scratch = GetScratch((arena*[]){_arena}, 1);
   
   Vector3s positions = {0};
   Vector3s normals = {0};
@@ -127,15 +128,15 @@ ReadOBJBuffer(void* buffer, u64 bufferSize, arena* _arena) {
       
       if(sv_cmp(word0, sv("v"))) {
 	vec3s pos = {sv_to_f32(word1), sv_to_f32(word2), sv_to_f32(word3)};
-	*da_append(positions, &scratch) = pos;
+	*da_append(positions, scratch.Arena) = pos;
       }
       else if(sv_cmp(word0, sv("vt"))) {
 	vec2s tc = {sv_to_f32(word1), sv_to_f32(word2)};
-	*da_append(textureCoordinates, &scratch) = tc;
+	*da_append(textureCoordinates, scratch.Arena) = tc;
       }
       else if(sv_cmp(word0, sv("vn"))) {
 	vec3s nrm = {sv_to_f32(word1), sv_to_f32(word2), sv_to_f32(word3)};
-	*da_append(normals, &scratch) = nrm;
+	*da_append(normals, scratch.Arena) = nrm;
       }
       else if(sv_cmp(word0, sv("f"))) {
 	string_view pi0 = sv_split(&word1, '/', false);
@@ -154,18 +155,18 @@ ReadOBJBuffer(void* buffer, u64 bufferSize, arena* _arena) {
 	sv_trim(&pi1); sv_trim(&tci1); sv_trim(&ni1);
 	sv_trim(&pi2); sv_trim(&tci2); sv_trim(&ni2);
 
-	*da_append(positionIndices, &scratch) = sv_to_u32(pi0) ;
-	*da_append(positionIndices, &scratch) = sv_to_u32(pi1) ;
-	*da_append(positionIndices, &scratch) = sv_to_u32(pi2) ;
+	*da_append(positionIndices, scratch.Arena) = sv_to_u32(pi0) ;
+	*da_append(positionIndices, scratch.Arena) = sv_to_u32(pi1) ;
+	*da_append(positionIndices, scratch.Arena) = sv_to_u32(pi2) ;
 
 	if(tci0.Length > 0 && tci1.Length > 0 && tci2.Length > 0) {
-	  *da_append(textureCoordinateIndices, &scratch) = sv_to_u32(tci0);
-	  *da_append(textureCoordinateIndices, &scratch) = sv_to_u32(tci1);
-	  *da_append(textureCoordinateIndices, &scratch) = sv_to_u32(tci2);
+	  *da_append(textureCoordinateIndices, scratch.Arena) = sv_to_u32(tci0);
+	  *da_append(textureCoordinateIndices, scratch.Arena) = sv_to_u32(tci1);
+	  *da_append(textureCoordinateIndices, scratch.Arena) = sv_to_u32(tci2);
 	}
-	*da_append(normalIndices, &scratch) = sv_to_u32(ni0);
-	*da_append(normalIndices, &scratch) = sv_to_u32(ni1);
-	*da_append(normalIndices, &scratch) = sv_to_u32(ni2);
+	*da_append(normalIndices, scratch.Arena) = sv_to_u32(ni0);
+	*da_append(normalIndices, scratch.Arena) = sv_to_u32(ni1);
+	*da_append(normalIndices, scratch.Arena) = sv_to_u32(ni2);
       }
     }
   }
@@ -232,6 +233,6 @@ ReadOBJBuffer(void* buffer, u64 bufferSize, arena* _arena) {
     *da_append(data.Format, _arena) = 3;
   }
 
-  release_scratch(&scratch);
+  ReleaseScratch(scratch);
   return data;
 }

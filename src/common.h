@@ -28,6 +28,8 @@
 
 #define IS_POWER_OF_TWO(x) ((x & (x - 1)) == 0)
 
+#define ARR_LEN(arr) (sizeof((arr)) / sizeof(*(arr)))
+
 #ifdef DOLK_DO_ASSERT 
 #define ASSERT(expr) ((expr) ? (void)0 : abort())
 #else

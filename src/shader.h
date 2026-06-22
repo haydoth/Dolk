@@ -6,7 +6,9 @@
 
 #include <cglm/cglm.h>
 
-u32 OpenGL_CreateShaderFromGLSLBuffer(void* buffer, u64 bufferSize, arena* _arena);
-void OpenGL_UseShader(u32 shader);
+u32 CreateShaderFromGLSLBuffer(void* buffer, u64 bufferSize, arena* _arena);
+void UseShader(u32 shader);
 
-void OpenGL_ShaderSetUniformMat4(u32 shader, const char* name, mat4 matrix);
+void ShaderSetUniformFloat(u32 shader, const char* name, float value);
+void ShaderSetUniformVec3(u32 shader, const char* name, vec3 vector);
+void ShaderSetUniformMat4(u32 shader, const char* name, mat4 matrix);
