@@ -22,15 +22,20 @@ void main()
 in vec2 texCoords;
 in vec3 vertexNormal;
 
+uniform float TIME;
 uniform float AMBIENT_STRENGTH;
 uniform vec3 AMBIENT_COLOR;
 uniform vec3 LIGHT_COLOR;
 
 out vec4 FragColor;
 
+float sin01(float x) {
+      return (sin(x) + 1) * 0.5;
+}
+
 void main()
 {
-	vec3 lightDir = vec3(0.5, 1.0, 0.5);
+	vec3 lightDir = vec3(-1.0, 1.0, -1.0);
 	vec3 final = mix(AMBIENT_COLOR, LIGHT_COLOR, max(dot(lightDir, vertexNormal), AMBIENT_STRENGTH));
 	//vec3 final = mix(AMBIENT_COLOR, LIGHT_COLOR, smoothstep(0.75, 0.80, max(dot(lightDir, vertexNormal), AMBIENT_STRENGTH)));
 	FragColor = vec4(final, 1.0);

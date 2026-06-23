@@ -1,4 +1,6 @@
 # User-defined
+.#.gitignore	
+#.gitignore#
 .zig-cache
 build
 *_rdbg

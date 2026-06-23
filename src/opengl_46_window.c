@@ -98,3 +98,7 @@ CreateWindow(const char* windowTitle, int windowWidth, int windowHeight)
 
   return 1;
 }
+
+double GetElapsedTime() {
+  return glfwGetTime();
+}

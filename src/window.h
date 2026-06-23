@@ -16,3 +16,5 @@ WindowSize GetWindowSize();
 
 int CreateWindow(const char* windowTitle, int windowWidth, int windowHeight);
 void* GetWindowHandle();
+
+double GetElapsedTime();

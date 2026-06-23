@@ -10,11 +10,12 @@ typedef struct opengl_shader_source {
 } opengl_shader_source;
 
 internal opengl_shader_source
-ProcessShaderString(string_view inputStr, arena* _arena)
+ProcessShaderString(string_view inputStr)
 {
   opengl_shader_source result = {0};  
   int currentlySelected = 0;
-  
+
+  arena_temp scratch = GetScratch(0, 0);
   while(inputStr.Length > 0) {
     string_view line = sv_split(&inputStr, '\n', true);
     string_view copy = line;
@@ -31,12 +32,12 @@ ProcessShaderString(string_view inputStr, arena* _arena)
 
     switch(currentlySelected) {
     case 1: {
-      *da_append(result.VertexStrings, _arena) = line.CString;
-      *da_append(result.VertexStringLengths, _arena) = (i32)line.Length; 
+      *da_append(result.VertexStrings, scratch.Arena) = line.CString;
+      *da_append(result.VertexStringLengths, scratch.Arena) = (i32)line.Length; 
     } break;
     case 2: {
-      *da_append(result.FragmentStrings, _arena) = line.CString;
-      *da_append(result.FragmentStringLengths, _arena) = (i32)line.Length; 
+      *da_append(result.FragmentStrings, scratch.Arena) = line.CString;
+      *da_append(result.FragmentStringLengths, scratch.Arena) = (i32)line.Length; 
     } break;
     default: break;
     }
@@ -95,10 +96,10 @@ CompileShaderSource(opengl_shader_source src) {
 }
 
 u32
-CreateShaderFromGLSLBuffer(void* buffer, u64 bufferSize, arena* _arena) {
+CreateShaderFromGLSLBuffer(void* buffer, u64 bufferSize) {
     
   string_view file_str = {(char*)buffer, bufferSize};
-  opengl_shader_source src = ProcessShaderString(file_str, _arena);
+  opengl_shader_source src = ProcessShaderString(file_str);
   u32 shaderProgram = CompileShaderSource(src);
     
   return shaderProgram;

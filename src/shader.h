@@ -6,7 +6,7 @@
 
 #include <cglm/cglm.h>
 
-u32 CreateShaderFromGLSLBuffer(void* buffer, u64 bufferSize, arena* _arena);
+u32 CreateShaderFromGLSLBuffer(void* buffer, u64 bufferSize);
 void UseShader(u32 shader);
 
 void ShaderSetUniformFloat(u32 shader, const char* name, float value);
