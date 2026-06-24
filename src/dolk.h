@@ -1,4 +1,21 @@
 #include "common.h"
+#include "window.h"
+#include "input.h"
+#include "renderer.h"
+#include "audio.h"
 
-void Init();
-void Update(f64 delta);
+typedef struct {
+  float playerSpeed;
+} GameState;
+
+typedef struct {
+
+  WindowState window;
+  AudioState audio;
+  RenderState render;
+  GameState game;
+  
+} AppState;
+
+void Init(AppState* app);
+void Update(AppState* app, f64 delta);

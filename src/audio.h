@@ -1,6 +1,11 @@
-#include <cglm/cglm.h> 
-
 #include "common.h"
+
+#define MAX_AUDIO_BUFFERS 64
+
+// will probably live on a separate thread  
+typedef struct {
+  u32 buffers[MAX_AUDIO_BUFFERS];
+} AudioState;
 
 void Audio_Init();
 
@@ -13,5 +18,5 @@ void Audio_SourceSetBuffer(u32 source, u32 buffer);
 void Audio_SourceSetGain(u32 source, f32 gain);
 void Audio_SourceSetPitch(u32 source, f32 pitch);
 void Audio_SourceSetLooping(u32 source, bool looping);
-void Audio_SourceSetPosition(u32 source, vec3 position);
-void Audio_SourceSetVelocity(u32 source, vec3 velocity);
+void Audio_SourceSetPositionV(u32 source, float* position);
+void Audio_SourceSetVelocityV(u32 source, float* velocity);

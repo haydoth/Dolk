@@ -1,20 +1,28 @@
 #pragma once
 
+#include "input.h"
+
+typedef struct {
+
+  InputState input;
+  void* handle;
+  
+} WindowState;
+
 typedef struct { int X, Y; } WindowPosition;
 typedef struct { int Width, Height; } WindowSize;
 
 void SetClearColor(float r, float g, float b);
 void SetClearColorV(float* v);
 
-void SetWindowTitle(const char* title);
+void SetWindowTitle(WindowState* window, const char* title);
 
-void SetWindowPosition(int x, int y);
-WindowPosition GetWindowPosition();
+void SetWindowPosition(WindowState* window, int x, int y);
+WindowPosition GetWindowPosition(WindowState* window);
 
-void SetWindowSize(int width, int height);
-WindowSize GetWindowSize();
+void SetWindowSize(WindowState* window, int width, int height);
+WindowSize GetWindowSize(WindowState* window);
 
-int CreateWindow(const char* windowTitle, int windowWidth, int windowHeight);
-void* GetWindowHandle();
+int CreateWindow(WindowState* state, const char* windowTitle, int windowWidth, int windowHeight);
 
-double GetElapsedTime();
+double GetElapsedTime(void);

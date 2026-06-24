@@ -1,24 +1,18 @@
-#include <AL/al.h>
-#include <AL/alc.h>
+// Dolk
+#include "dolk.h"
+
+#include "common.h"
+#include "window.h"
+#include "input.h"
 
 // STD
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
 
-// Dolk
-#include "common.h"
-#include "arena.h"
-#include "file_io.h"
-#include "sv.h"
-#include "window.h"
-
-#include "dolk.h"
-
 // OpenGL
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-
 
 /*
   GAME ARCHITECTURE, courtesy of C. Muratori
@@ -99,29 +93,30 @@ OpenGL_SetupDebugOutput()
 int
 main() {
 
-  if(!CreateWindow("Dolk", 1280, 720)) return -1;
+  AppState app = {0};
+  if(!CreateWindow(&(app.window), "Dolk", 1280, 720)) return -1;
   OpenGL_SetupDebugOutput();
 
   glfwWindowHint(GLFW_SAMPLES, 4);
-  glEnable(GL_MULTISAMPLE);  
-  
+  glEnable(GL_MULTISAMPLE);    
   glEnable(GL_DEPTH_TEST);
   
-  Init();
+  Init(&app);
 
   f64 lastFrameTime = 0;
   f64 frameTime = 0;
   f64 delta = 0;
-  while(!glfwWindowShouldClose(GetWindowHandle()))
+  while(!glfwWindowShouldClose((GLFWwindow*)app.window.handle))
   {
     frameTime = glfwGetTime();
     delta = frameTime - lastFrameTime;
     lastFrameTime = frameTime;
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    Update(&app, delta);
+    Input_EndFrame(&(app.window.input));
     
-    Update(delta);
-    
-    glfwSwapBuffers(GetWindowHandle());
+    glfwSwapBuffers((GLFWwindow*)app.window.handle);
     glfwPollEvents();    
   }
     

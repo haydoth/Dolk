@@ -76,9 +76,9 @@ void Audio_SourceSetPitch(u32 source, f32 pitch) {
 void Audio_SourceSetLooping(u32 source, bool looping) {
   alSourcei(source, AL_LOOPING, looping);
 }
-void Audio_SourceSetPosition(u32 source, vec3 position) {
+void Audio_SourceSetPositionV(u32 source, float* position) {
   alSource3f(source, AL_POSITION, position[0], position[1], position[2]);
 }
-void Audio_SourceSetVelocity(u32 source, vec3 velocity) {
+void Audio_SourceSetVelocityV(u32 source, float* velocity) {
   alSource3f(source, AL_VELOCITY, velocity[0], velocity[1], velocity[2]);
 }

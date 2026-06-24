@@ -96,7 +96,7 @@ CompileShaderSource(opengl_shader_source src) {
 }
 
 u32
-CreateShaderFromGLSLBuffer(void* buffer, u64 bufferSize) {
+Shader_CreateFromGLSLBuffer(void* buffer, u64 bufferSize) {
     
   string_view file_str = {(char*)buffer, bufferSize};
   opengl_shader_source src = ProcessShaderString(file_str);
@@ -106,24 +106,24 @@ CreateShaderFromGLSLBuffer(void* buffer, u64 bufferSize) {
 }
 
 void
-UseShader(u32 shader) {
+Shader_Use(u32 shader) {
   glUseProgram(shader);
 }
 
 void
-ShaderSetUniformFloat(u32 shader, const char* name, float value) {
+Shader_SetUniformFloat(u32 shader, const char* name, float value) {
   GLuint location = glGetUniformLocation(shader, name);
   glUniform1f(location, value);
 }
 
 void
-ShaderSetUniformVec3(u32 shader, const char* name, vec3 vector) {
+Shader_SetUniformVec3(u32 shader, const char* name, vec3 vector) {
   GLuint location = glGetUniformLocation(shader, name);
   glUniform3fv(location, 1, vector);
 }
 
 void
-ShaderSetUniformMat4(u32 shader, const char* name, mat4 matrix) {
+Shader_SetUniformMat4(u32 shader, const char* name, mat4 matrix) {
   GLuint location = glGetUniformLocation(shader, name);
   glUniformMatrix4fv(location, 1, GL_FALSE, matrix[0]);
 }

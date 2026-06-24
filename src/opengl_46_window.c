@@ -1,18 +1,13 @@
 #include "window.h"
 
 #include "arena.h"
+#include "input.h"
 
 // OpenGL
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-global GLFWwindow* OpenGL_Window;
-
-void*
-GetWindowHandle() {
-  return OpenGL_Window;
-}
-
+//TODO: move clear color functions and glviewport to renderer
 void
 SetClearColor(float r, float g, float b) {
   glClearColor(r, g, b, 1.0f);
@@ -30,72 +25,76 @@ OpenGL_FramebufferResizeCallback(GLFWwindow* window, int width, int height)
   glViewport(0, 0, width, height);
 }
 
-void
-SetWindowTitle(const char* title) {
-  glfwSetWindowTitle(OpenGL_Window, title);
+internal void
+OpenGL_KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+  UNUSED(mods);
+  UNUSED(scancode);
+
+  if(action == GLFW_REPEAT) return;
+  
+  WindowState *windowState = (WindowState*)glfwGetWindowUserPointer(window);
+  windowState->input.currentKeyStates[key] = (char)action;
 }
 
 void
-SetWindowPosition(int x, int y) {
-  glfwSetWindowPos(OpenGL_Window, x, y);
+SetWindowTitle(WindowState* window, const char* title) {
+  glfwSetWindowTitle((GLFWwindow*)window->handle, title);
+}
+
+void
+SetWindowPosition(WindowState* window, int x, int y) {
+  glfwSetWindowPos((GLFWwindow*)window->handle, x, y);
 }
 
 WindowPosition
-GetWindowPosition() {
+GetWindowPosition(WindowState* window) {
   int x, y;
-  glfwGetWindowPos(OpenGL_Window, &x, &y);
+  glfwGetWindowPos((GLFWwindow*)window->handle, &x, &y);
   return (WindowPosition) {x, y};
 }
 
 void
-SetWindowSize(int width, int height) {
-  glfwSetWindowSize(OpenGL_Window, width, height);
+SetWindowSize(WindowState* window, int width, int height) {
+  glfwSetWindowSize((GLFWwindow*)window->handle, width, height);
 }
 
 WindowSize
-GetWindowSize() {
+GetWindowSize(WindowState* window) {
   int w, h;
-  glfwGetWindowSize(OpenGL_Window, &w, &h);
+  glfwGetWindowSize((GLFWwindow*)window->handle, &w, &h);
   return (WindowSize) {w, h};
 }
 
-typedef struct {
-  int Hint, Value;
-} OpenGL_WindowHint;
+int
+CreateWindow(WindowState* window, const char* windowTitle, int windowWidth, int windowHeight)
+{
+  // Init GLFW
 
-internal int
-OpenGL_InitGLFW(OpenGL_WindowHint* hints, u64 hintCount) {
   if(!glfwInit()) {
     DOLK_ERROR("Failed to initialize GLFW!");
     return 0;
   }
-  for(int i = 0; i < hintCount; ++i) {
-    glfwWindowHint(hints[i].Hint, hints[i].Value);
-  }
-  return 1;
-}
 
-int
-CreateWindow(const char* windowTitle, int windowWidth, int windowHeight)
-{
-  OpenGL_WindowHint hints[16] = {
-    {GLFW_CONTEXT_VERSION_MAJOR, 4},
-    {GLFW_CONTEXT_VERSION_MINOR, 6},
-    {GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE}
-  };
-  if(!OpenGL_InitGLFW(hints, 3)) return 0;
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+  window->handle = glfwCreateWindow(windowWidth, windowHeight, windowTitle, 0, 0);
+  if(!window->handle) return 0;
+  glfwMakeContextCurrent((GLFWwindow*)window->handle);
+
+  // Register GLFW callbacks
+  glfwSetWindowUserPointer((GLFWwindow*)window->handle, window);
+  glfwSetFramebufferSizeCallback((GLFWwindow*)window->handle, OpenGL_FramebufferResizeCallback);
+  glfwSetKeyCallback((GLFWwindow*)window->handle, OpenGL_KeyCallback);
   
-  OpenGL_Window = glfwCreateWindow(windowWidth, windowHeight, windowTitle, 0, 0);
-  if(!OpenGL_Window) return 0;
-  glfwMakeContextCurrent(OpenGL_Window);
-  glfwSetFramebufferSizeCallback(OpenGL_Window, OpenGL_FramebufferResizeCallback);
-  
+  // Init GLAD
   if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
     DOLK_ERROR("Failed to initialize GLAD!");
     return 0;
   }
   glViewport(0, 0, windowWidth, windowHeight);
-
+  
   return 1;
 }
 
