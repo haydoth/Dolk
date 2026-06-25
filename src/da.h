@@ -3,53 +3,43 @@
 // STD
 #include <stdlib.h>
 
-// Chisel
+// Dolk
 #include "common.h"
+#include "arena.h"
 
-#define DA_INIT_CAPACITY 256
+// typedef struct {
+//   void** Items;
+//   u64 Count;
+//   u64 Capacity;
+// } DynamicArray;
 
-#define da(T) T*
+typedef struct {
+  char** Items;
+  u64 Count;
+  u64 Capacity;
+} CStrings;
 
-typedef struct da_header {u64 Count, Capacity;} da_header;
+typedef struct {
+  i32* Items;
+  u64 Count;
+  u64 Capacity;
+} I32s;
 
-#define da_append(da, item)\
-  do {									\
-    if(!da) {								\
-      da_header* header = malloc(sizeof(*da) * DA_INIT_CAPACITY + sizeof(da_header)); \
-      header->Count = 0;						\
-      header->Capacity = DA_INIT_CAPACITY;				\
-      da = (void*)(header + 1);						\
-    }									\
-    da_header* header = (da_header*)(da) - 1;				\
-    if(header->Count >= header->Capacity) {				\
-      header->Capacity *= 2;						\
-      header = realloc(header, sizeof(*da)*header->Capacity + sizeof(da_header));\
-      da = (void*)(header + 1);						\
-    }									\
-    (da)[header->Count++] = (item);					\
-  } while(0)
+typedef struct {
+  u32* Items;
+  u64 Count;
+  u64 Capacity;
+} U32s;
 
-#define da_len(da) ((da_header*)(da) - 1)->Count
+typedef struct {
+  f32* Items;
+  u64 Count;
+  u64 Capacity;
+} F32s;
 
-// NOTE: This will invalidate all handles to elements after the index
-#define da_remove(da, index)				\
-  do {							\
-  if(da) {						\
-    if(index < da_len(da)) {				\
-      memmove(da + index, da + index + 1, sizeof(*da) * (da_len(da) - (index + 1))); \
-    }							\
-  }							\
-} while(0)
+#define DA_INIT_CAP 16
 
-#define da_erase(da, index)				\
-  do {							\
-    if(da) { if(index < da_len(da)) { memset(da + index, 0, sizeof(*da)); }} \
-} while(0)
+void da_prep(u64 item_size, arena* _arena, void* da);
 
-// NOTE: Could be made more efficient by memcopying the source DA to the end of the  destination
-#define da_append_da(dest, src)\
-  do {									\
-      if(src) { for(u64 i = 0; i < da_len(src); i++) da_append((dest), (src)[i]); } \
-} while(0)
-
-#define da_free(da) free((da_header*)(da) - 1);
+#define da_append(da, _arena)\
+  (da_prep(sizeof((da).Items[0]), (_arena), &(da)), (da).Items + (da).Count++)

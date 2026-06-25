@@ -3,15 +3,11 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #define global static
 #define internal static
 #define local_persist static
-
-#define true 1
-#define false 0
-
-#define bool int8_t
 
 #define u8  uint8_t
 #define u16 uint16_t
@@ -30,8 +26,12 @@
 #define Megabytes(x) (Kilobytes(x) * 1024)
 #define Gigabytes(x) (Megabytes(x) * 1024)
 
-#ifdef DOLK_SLOW 
-#define ASSERT(expr) do {if(!(expr)) {abort();}} while(0)
+#define IS_POWER_OF_TWO(x) ((x & (x - 1)) == 0)
+
+#define ARR_LEN(arr) (sizeof((arr)) / sizeof(*(arr)))
+
+#ifdef DOLK_DO_ASSERT 
+#define ASSERT(expr) ((expr) ? (void)0 : abort())
 #else
 #define ASSERT(expr) 
 #endif

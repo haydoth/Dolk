@@ -1,13 +1,16 @@
 # User-defined
+.#.gitignore	
+#.gitignore#
 .zig-cache
 build
 *_rdbg
 *.zig
+TAGS
 
 ### C
 # Object files
 *.o
-*.obj
+# *.obj
 *.elf
 
 # Precompiled Headers
@@ -15,14 +18,14 @@ build
 *.pch
 
 # Libraries
-*.lib
-*.a
-*.la
-*.lo
-*.dll
-*.so
-*.so.*
-*.dylib
+#*.lib
+#*.a
+#*.la
+#*.lo
+#*.dll
+#*.so
+#*.so.*
+#*.dylib
 
 # Executables
 *.exe

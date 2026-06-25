@@ -39,8 +39,10 @@ arena_create() {
   // as arena expands
 
   void* buffer = VirtualAlloc(0, reserved, MEM_RESERVE, PAGE_NOACCESS);
+  ASSERT(buffer);
   VirtualAlloc(buffer, committed, MEM_COMMIT, PAGE_READWRITE);
   ASSERT(buffer);
+  memset(buffer, 0, committed);
   
   return (arena) {(u8*)buffer, 0, committed, reserved};
 }
@@ -59,7 +61,15 @@ arena_push_align(arena* a, u64 size, u64 alignment)
   }
 
   a->Offset = newOffset;
+  //  memset((void*)aligned, 0, size);
   return (void*)aligned;
+}
+
+void*
+arena_write_align(arena* a, u64 size, u64 alignment, void* data) {
+  void* ptr = arena_push_align(a, size, alignment);
+  memcpy(ptr, data, size);
+  return ptr;
 }
 
 void
@@ -79,4 +89,24 @@ arena_temp arena_temp_begin(arena* _arena) {
 
 void arena_temp_end(arena_temp temp) {
   temp.Arena->Offset = temp.Offset;
+}
+
+#define NUM_MAX_SCRATCH_ARENAS 16
+global arena ScratchArenas[NUM_MAX_SCRATCH_ARENAS];
+global u64 ScratchArena_Count;
+
+// pass in persistent arenas that are used in the current codepath
+arena_temp GetScratch(arena **conflicts, u64 conflictCount) {
+
+  for(u64 i = 0; i < ScratchArena_Count; ++i) {
+    bool isInUse = false;
+    for(u64 j = 0; j < conflictCount; ++j) {
+      if(conflicts[j] == ScratchArenas + i) isInUse = true;
+    }
+    if(!isInUse) return arena_temp_begin(ScratchArenas + i);
+  }
+  if(ScratchArena_Count >= NUM_MAX_SCRATCH_ARENAS) { ASSERT(false); }
+  arena newScratch = arena_create();
+  ScratchArenas[ScratchArena_Count++] = newScratch;
+  return arena_temp_begin(&ScratchArenas[ScratchArena_Count - 1]);
 }
