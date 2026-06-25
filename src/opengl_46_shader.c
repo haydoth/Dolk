@@ -1,5 +1,9 @@
 #include "shader.h"
 
+#include "sv.h"
+#include "da.h"
+#include "common.h"
+
 #include "glad/glad.h"
 
 typedef struct opengl_shader_source {
@@ -61,6 +65,7 @@ CompileShaderSource(opengl_shader_source src) {
     char infoLog[512];
     glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
     DOLK_ERROR("Failed to compile vertex shader:\n%s\n", infoLog);
+    return 0;
   }
   
   u32 fragmentShader;
@@ -73,6 +78,7 @@ CompileShaderSource(opengl_shader_source src) {
     char infoLog[512];
     glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
    DOLK_ERROR("Failed to compile fragment shader:\n%s\n", infoLog);
+   return 0;
   }
   
   u32 shaderProgram;
@@ -87,6 +93,7 @@ CompileShaderSource(opengl_shader_source src) {
     char infoLog[512];
     glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
     DOLK_ERROR("Failed to link shader program:\n%s\n", infoLog);
+    return 0;
   }    
 
   glDeleteShader(vertexShader);
@@ -95,35 +102,35 @@ CompileShaderSource(opengl_shader_source src) {
   return shaderProgram;
 }
 
-u32
-Shader_CreateFromGLSLBuffer(void* buffer, u64 bufferSize) {
+unsigned int
+Shader_CreateFromGLSLBuffer(void* buffer, unsigned long long bufferSize) {
     
   string_view file_str = {(char*)buffer, bufferSize};
   opengl_shader_source src = ProcessShaderString(file_str);
-  u32 shaderProgram = CompileShaderSource(src);
-    
+  unsigned int shaderProgram = CompileShaderSource(src);
+
   return shaderProgram;
 }
 
 void
-Shader_Use(u32 shader) {
+Shader_Use(unsigned int shader) {
   glUseProgram(shader);
 }
 
 void
-Shader_SetUniformFloat(u32 shader, const char* name, float value) {
+Shader_SetUniformFloat(unsigned int shader, const char* name, float value) {
   GLuint location = glGetUniformLocation(shader, name);
   glUniform1f(location, value);
 }
 
 void
-Shader_SetUniformVec3(u32 shader, const char* name, vec3 vector) {
+Shader_SetUniformVec3(unsigned int shader, const char* name, vec3 vector) {
   GLuint location = glGetUniformLocation(shader, name);
   glUniform3fv(location, 1, vector);
 }
 
 void
-Shader_SetUniformMat4(u32 shader, const char* name, mat4 matrix) {
+Shader_SetUniformMat4(unsigned int shader, const char* name, mat4 matrix) {
   GLuint location = glGetUniformLocation(shader, name);
   glUniformMatrix4fv(location, 1, GL_FALSE, matrix[0]);
 }

@@ -87,7 +87,7 @@ Init(AppState *app) {
   glm_mat4_identity(view);
   glm_mat4_identity(proj);
   
-  glm_translate(model, (vec3) {0, -80, 150});
+  glm_translate(model, (vec3) {0, -80, -150});
   glm_look(app->render.eye.position, app->render.eye.forward, app->render.up, view);
   glm_perspective(glm_rad(75.0f), 16.0f / 9.0f, 0.1f, 3000.0f, proj);
 
@@ -95,7 +95,7 @@ Init(AppState *app) {
   SetColorScheme(testShader, light, bg, 0.2f);  
 
   app->render.up[1] = 1;
-  app->render.eye.forward[2] = 1;
+  app->render.eye.forward[2] = -1;
   app->game.playerSpeed = 20.0f;
 }
 
@@ -111,9 +111,9 @@ Update(AppState *app, f64 delta)
     SetColorScheme(testShader, light, bg, 0.2f);
   }
   
-  int in_x = KeyIsPressed(input, 'A') - KeyIsPressed(input, 'D');
-  int in_y = KeyIsPressed(input, ' ') - KeyIsPressed(input, 'C');
-  int in_z = KeyIsPressed(input, 'W') - KeyIsPressed(input, 'S');
+  int in_x = KeyIsPressed(input, 'D') - KeyIsPressed(input, 'A');
+  int in_y = KeyIsPressed(input, DOLK_KEY_SPACE) - KeyIsPressed(input, DOLK_KEY_LEFT_CONTROL);
+  int in_z = KeyIsPressed(input, 'S') - KeyIsPressed(input, 'W');
 
   vec3 move = {(f32)in_x, (f32)in_y, (f32)in_z};
   glm_vec3_scale(move, app->game.playerSpeed * (f32)delta, move);
@@ -121,15 +121,18 @@ Update(AppState *app, f64 delta)
   glm_look(render->eye.position, render->eye.forward, render->up, view);
   
   glm_rotate_y(model, glm_rad(16.0f * (f32)delta), model);
-  
+
+  //draw
+  if(!testShader) return;
   Shader_Use(testShader);
   Shader_SetUniformFloat(testShader, "TIME", (f32)GetElapsedTime());
   Shader_SetUniformMat4(testShader, "MODEL_MATRIX", model);
-
+  Shader_SetUniformMat4(testShader, "VIEW_MATRIX", view);
+  
   mat4 view_proj;
   glm_mat4_mul(proj, view, view_proj);
 
-  Shader_SetUniformMat4(testShader, "VIEW_MATRIX", view_proj);
+  Shader_SetUniformMat4(testShader, "VIEW_PROJECTION_MATRIX", view_proj);
   OpenGL_BindIndexBuffer(renderBuffer);
   OpenGL_DrawVertexArray(vertexArray, indicesOffset, numIndices);
 }
