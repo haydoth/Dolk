@@ -1,4 +1,6 @@
 
+PLANNED RELEASE DATE: 01/08/2026
+
 # TODO:
 
   - Rename the project [x]
