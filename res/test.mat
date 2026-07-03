@@ -1,0 +1,8 @@
+#material plastic
+#shader test
+
+float SPEC_TINT 0.0
+float SPEC_STRENGTH 1.0
+float SHININESS 32.0
+
+float AMBIENT_STRENGTH 0.2

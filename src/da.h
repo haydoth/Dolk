@@ -1,17 +1,17 @@
 #pragma once
 
-// STD
-#include <stdlib.h>
 
 // Dolk
 #include "common.h"
 #include "arena.h"
+#include "types.h"
 
 // typedef struct {
 //   void** Items;
 //   u64 Count;
 //   u64 Capacity;
 // } DynamicArray;
+
 
 typedef struct {
   char** Items;
@@ -36,6 +36,7 @@ typedef struct {
   u64 Count;
   u64 Capacity;
 } F32s;
+
 
 #define DA_INIT_CAP 16
 

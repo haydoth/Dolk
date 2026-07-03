@@ -1,5 +1,7 @@
 #include "da.h"
-#include "string.h"
+
+#include <string.h>
+#include <stdlib.h>
 
 // Dynamic array memory layout
 // [8][8][8]

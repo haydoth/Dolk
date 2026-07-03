@@ -1,11 +1,6 @@
+#pragma once
 #include "common.h"
-
-#define MAX_AUDIO_BUFFERS 64
-
-// will probably live on a separate thread  
-typedef struct {
-  u32 buffers[MAX_AUDIO_BUFFERS];
-} AudioState;
+#include "types.h"
 
 void Audio_Init();
 

@@ -7,7 +7,7 @@ sv(char* cStr)
 }
 
 void
-sv_chop_left(string_view* sv, u64 n)
+sv_chop_left(string_view* sv, unsigned long long  n)
 {
   if(n > sv->Length) n = sv->Length;
   sv->Length  -= n;
@@ -15,7 +15,7 @@ sv_chop_left(string_view* sv, u64 n)
 }
 
 void
-sv_chop_right(string_view* sv, u64 n)
+sv_chop_right(string_view* sv, unsigned long long n)
 {
   if(n > sv->Length) n = sv->Length;
   sv->Length -= n;
@@ -44,6 +44,29 @@ sv_trim(string_view* sv)
   sv_trim_right(sv);
 }
 
+
+unsigned long long
+sv_word_count(string_view sv) {
+  sv_trim(&sv);
+  unsigned long long spaceCount = 0;
+  for(unsigned long long i = 0; i < sv.Length; ++i) {
+    char c = sv.CString[i];
+    if(c == ' ') spaceCount += 1;
+  }
+  if(spaceCount == sv.Length) return 0;
+  return spaceCount + 1;
+}
+
+unsigned long long
+sv_line_count(string_view sv) {
+  unsigned long long newLineCount = 0;
+  for(unsigned long long i = 0; i < sv.Length; ++i) {
+    char c = sv.CString[i];
+    if(c == '\n') newLineCount += 1;
+  }
+  return newLineCount;
+}
+
 bool
 sv_cmp(string_view a, string_view b)
 {
@@ -55,7 +78,7 @@ sv_cmp(string_view a, string_view b)
 string_view
 sv_split(string_view* sv, char delim, bool includeDelim)
 {
-  u64 index = 0;
+  unsigned long long index = 0;
   while(index < sv->Length) {
     if(sv->CString[index] == delim) {
       string_view result = {sv->CString, index + includeDelim};

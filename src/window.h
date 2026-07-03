@@ -1,13 +1,5 @@
 #pragma once
-
-#include "input.h"
-
-typedef struct {
-
-  InputState input;
-  void* handle;
-  
-} WindowState;
+#include "types.h"
 
 typedef struct { int X, Y; } WindowPosition;
 typedef struct { int Width, Height; } WindowSize;

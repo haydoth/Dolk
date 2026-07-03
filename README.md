@@ -24,3 +24,4 @@ Walking sim with a strong visual focus. The environment will be an abandoned sno
 
 # Engine backburner
 - Runtime mesh generation []
+- Text rendering []

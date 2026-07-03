@@ -125,8 +125,11 @@ ReadOBJBuffer(void* buffer, u64 bufferSize, arena* _arena) {
       sv_trim(&word1);
       sv_trim(&word2);
       sv_trim(&word3);
-      
-      if(sv_cmp(word0, sv("v"))) {
+
+      if(sv_cmp(word0, sv("o"))) {
+	data.Name = word1;
+      }
+      else if(sv_cmp(word0, sv("v"))) {
 	vec3s pos = {sv_to_f32(word1), sv_to_f32(word2), sv_to_f32(word3)};
 	*da_append(positions, scratch.Arena) = pos;
       }

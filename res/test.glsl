@@ -1,3 +1,4 @@
+#shader test
 #vertex
 #version 460 core
 layout (location = 0) in vec3 aPos;
@@ -29,6 +30,8 @@ in vec3 vertexNormal;
 uniform mat4 VIEW_MATRIX;
 uniform float TIME;
 uniform float SPEC_TINT;
+uniform float SPEC_STRENGTH;
+uniform float SHININESS;
 uniform float AMBIENT_STRENGTH;
 uniform vec3 AMBIENT_COLOR;
 uniform vec3 LIGHT_COLOR;

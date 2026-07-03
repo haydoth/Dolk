@@ -1,15 +1,5 @@
 #pragma once
-
-#include "input_codes.h"
-
-typedef struct {
-
-  char currentKeyStates[DOLK_KEY_COUNT];
-  char lastKeyStates[DOLK_KEY_COUNT]; 
-  float currentMousePosition[2];
-  float lastMousePosition[2];
-  
-} InputState;
+#include "types.h"
 
 void Input_EndFrame(InputState* state);
 

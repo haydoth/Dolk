@@ -1,8 +1,8 @@
 #pragma once
 
-#include <cglm/cglm.h>
+#include "types.h"
 
-unsigned int Shader_CreateFromGLSLBuffer(void* buffer, unsigned long long bufferSize);
+Shader Shader_CreateFromGLSLBuffer(void* buffer, unsigned long long bufferSize);
 void Shader_Use(unsigned int shader);
 
 void Shader_SetUniformFloat(unsigned int shader, const char* name, float value);
