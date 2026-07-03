@@ -2,15 +2,13 @@
 
 #include <string.h>
 
-internal wav_data nil_wav_data = {0};
-
 wav_data
 ReadWAVBuffer(void* buffer, u32 bufferSize, arena* _arena)
 {
   ASSERT(buffer && bufferSize);
   
-  if(strncmp((const char*)buffer, "RIFF", 4)     != 0) { DOLK_ERROR("Failed to read WAV buffer!"); return nil_wav_data; }
-  if(strncmp((const char*)buffer + 8, "WAVE", 4) != 0) { DOLK_ERROR("Failed to read WAV buffer!"); return nil_wav_data; }
+  if(strncmp((const char*)buffer, "RIFF", 4)     != 0) { DOLK_ERROR("Failed to read WAV buffer!"); return (wav_data){0}; }
+  if(strncmp((const char*)buffer + 8, "WAVE", 4) != 0) { DOLK_ERROR("Failed to read WAV buffer!"); return (wav_data){0}; }
   
   u32 index = 12;
   bool found_format = 0, found_data = 0;

@@ -1,11 +1,17 @@
 #include "sb.h"
 
-#define SB_INIT_CAPACITY 256
+#define SB_INIT_CAPACITY 16
+
+const char* sb_view_to_cstr(arena* _arena, string_view view) {
+  string_builder sb = {0};
+  sb_append(&sb, _arena, view.CString, view.Length);
+  sb_append_null(&sb, _arena);
+  return (const char*)sb.CString;
+}
 
 void
-sb_append(string_builder* sb, arena* _arena, char* str) {
-  u64 len = strlen(str);
-  if(sb->Length + len > sb->Capacity) {
+sb_append(string_builder* sb, arena* _arena, char* str, u64 len) {
+  while(sb->Length + len > sb->Capacity) {
     sb->Capacity *= 2;
     if(sb->Capacity == 0) {
       // init
@@ -23,9 +29,7 @@ sb_append(string_builder* sb, arena* _arena, char* str) {
 }
 
 void
-sb_appendf(string_builder* sb, arena* _arena, char* str) {}
-
-void
 sb_append_null(string_builder* sb, arena* _arena) {
-  sb_append(sb. '/0');
+  char* str = "\0";
+  sb_append(sb, _arena, str, strlen(str));
 }

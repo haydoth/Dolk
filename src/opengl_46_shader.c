@@ -11,7 +11,6 @@ typedef struct opengl_shader_source {
   CStrings FragmentStrings;
   I32s VertexStringLengths;
   I32s FragmentStringLengths;
-  string_view Name;
 } opengl_shader_source;
 
 internal opengl_shader_source
@@ -26,13 +25,6 @@ ProcessShaderString(string_view inputStr)
     string_view copy = line;
     sv_trim(&copy); 
 
-    if(sv_word_count(copy) > 1) {
-      string_view token = sv_split(&copy, ' ', false);
-      if(sv_cmp(copy, sv("#shader"))) {
-	result.Name = copy;
-	continue;
-      } 
-    }
     if(sv_cmp(copy, sv("#vertex"))) {
       currentlySelected = 1;
       continue;
@@ -110,14 +102,14 @@ CompileShaderSource(opengl_shader_source src) {
   return shaderProgram;
 }
 
-Shader
-Shader_CreateFromGLSLBuffer(void* buffer, unsigned long long bufferSize) {
+unsigned int
+Shader_CreateProgramFromGLSLBuffer(void* buffer, unsigned long long bufferSize) {
     
   string_view file_str = {(char*)buffer, bufferSize};
   opengl_shader_source src = ProcessShaderString(file_str);
   unsigned int shaderProgram = CompileShaderSource(src);
 
-  return (Shader) {src.Name, shaderProgram};
+  return shaderProgram;
 }
 
 void

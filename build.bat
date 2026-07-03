@@ -27,6 +27,9 @@ cl /Zi /nologo /W4 /EHsc /MT ^
   src\sv.c ^
   src\obj.c ^
   src\da.c ^
+  src\sb.c ^
+  src\render_state.c ^
+  src\material.c ^
   /Fe:build\dolk.exe ^
   /Fo:build\obj\ ^
   /link ^

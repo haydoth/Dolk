@@ -1,8 +1,8 @@
 #pragma once
-
+#include "arena.h"
 #include "types.h"
 
-Shader Shader_CreateFromGLSLBuffer(void* buffer, unsigned long long bufferSize);
+unsigned int Shader_CreateProgramFromGLSLBuffer(void* buffer, unsigned long long bufferSize);
 void Shader_Use(unsigned int shader);
 
 void Shader_SetUniformFloat(unsigned int shader, const char* name, float value);

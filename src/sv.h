@@ -21,11 +21,9 @@ void sv_trim(string_view* sv);
 unsigned long long sv_word_count(string_view sv);
 unsigned long long sv_line_count(string_view sv);
   
-bool sv_cmp(string_view a, string_view b);
+int sv_cmp(string_view a, string_view b);
 
-string_view sv_split(string_view* sv, char delim, bool includeDelim);
-
-
+string_view sv_split(string_view* sv, char delim, int includeDelim);
 
 #define SV_Fmt "%.*s"
 #define SV_Arg(sv) (int)sv.Length, sv.CString

@@ -1,6 +1,8 @@
 #pragma once
+#include "types.h"
 #include "audio.h"
 #include "wav.h"
+#include "file_io.h"
 
 // returns OpenAL buffer
 inline u32 LoadWAVSound(char* path) {

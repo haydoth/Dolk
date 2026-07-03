@@ -67,16 +67,16 @@ sv_line_count(string_view sv) {
   return newLineCount;
 }
 
-bool
+int
 sv_cmp(string_view a, string_view b)
 {
-  if(a.Length != b.Length) return false;
+  if(a.Length != b.Length) return 0;
   
   return (strncmp(a.CString, b.CString, a.Length) == 0);
 }
 
 string_view
-sv_split(string_view* sv, char delim, bool includeDelim)
+sv_split(string_view* sv, char delim, int includeDelim)
 {
   unsigned long long index = 0;
   while(index < sv->Length) {

@@ -1,4 +1,3 @@
-#shader test
 #vertex
 #version 460 core
 layout (location = 0) in vec3 aPos;
@@ -35,6 +34,7 @@ uniform float SHININESS;
 uniform float AMBIENT_STRENGTH;
 uniform vec3 AMBIENT_COLOR;
 uniform vec3 LIGHT_COLOR;
+uniform vec3 OBJ_COLOR;
 
 out vec4 FragColor;
 
@@ -67,11 +67,11 @@ void main()
 
 	vec3 reflectDir = reflect(-lightDir, vertexNormal); 
 
-	vec3 amb = ambient(0.33, AMBIENT_COLOR);
+	vec3 amb = ambient(AMBIENT_STRENGTH, AMBIENT_COLOR);
 	vec3 diff = diffuse(normalize(vertexNormal), lightDir, LIGHT_COLOR);	
-	vec3 spec = specular(0.5, 16.0, 0, viewDir, reflectDir, LIGHT_COLOR);
+	vec3 spec = specular(SPEC_STRENGTH, SHININESS, SPEC_TINT, viewDir, reflectDir, LIGHT_COLOR);
 
-	vec3 objCol = vec3(0.7, 1.0, 0.7);
+	vec3 objCol = OBJ_COLOR;
 	vec3 result = (amb + diff + spec) * objCol;
 	FragColor = vec4(result, 1.0);
 }

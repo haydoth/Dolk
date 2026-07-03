@@ -1,5 +1,13 @@
 #include "renderer.h"
 
+#include "types.h"
+#include "material.h"
+#include "shader.h"
+#include "window.h"
+#include "vertex_array.h"
+#include "buffer.h"
+
+#include <cglm/cglm.h>
 #include <glad/glad.h>
 
 void DrawRenderable(RenderState* render, RenderableObject renderable)

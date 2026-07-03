@@ -2,4 +2,4 @@
 
 #include "types.h"
 
-void DrawRenderable(RenderableObject renderable);
+void DrawRenderable(RenderState* render, RenderableObject renderable);

@@ -7,7 +7,7 @@
 
 typedef struct {
   const char* name;
-  unsigned int handle; // if the handle is 0 then the shader isn't loaded
+  unsigned int handle;
 } Shader;
 
 typedef enum {
@@ -31,7 +31,6 @@ typedef struct {
 
   MaterialProperty properties[32];
   const char* name;
-  const char* shaderName;
   Shader* shader;
   u8 propertyCount;
   
@@ -50,24 +49,27 @@ typedef struct {
   mat4 transform; 
   Material* material;
   Mesh* mesh;
-
+  const char* name;
+  
 } RenderableObject;
 
 #define NUM_MAX_MESHES 32
 #define NUM_MAX_SHADERS 16
 #define NUM_MAX_MATERIALS 16
+#define NUM_MAX_RENDERABLES 64
 
 typedef struct {
+
+  mat4 view;
+  mat4 projection;
 
   Mesh meshes[NUM_MAX_MESHES];
   Shader shaders[NUM_MAX_SHADERS];
   Material materials[NUM_MAX_MATERIALS];
-  
   int shaderCount, materialCount, meshCount;
   
-  RenderableObject subject;
-  mat4 view;
-  mat4 projection;
+  RenderableObject renderables[NUM_MAX_RENDERABLES];
+  int renderableCount;
   
   struct {
     vec3 position;
@@ -99,3 +101,16 @@ typedef struct {
   void* handle;
   
 } WindowState;
+
+typedef struct {
+  float playerSpeed;
+} GameState;
+
+typedef struct {
+
+  WindowState window;
+  AudioState audio;
+  RenderState render;
+  GameState game;
+  
+} AppState;

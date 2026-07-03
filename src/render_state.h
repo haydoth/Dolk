@@ -1,22 +1,13 @@
 #pragma once
 #include "types.h"
-
-Shader* GetShader(RenderState* render, const char* name);
-Material* GetMaterial(RenderState* render, const char* name);
-
-#include "common.h"
-#include "shader.h"
-#include "obj.h"
-#include "file_io.h"
 #include "arena.h"
-#include "vertex_array.h"
-#include "buffer.h"
-#include "renderable.h"
-#include "material.h"
 
+RenderableObject* GetRenderable(RenderState* render, const char* name);
+
+Mesh* GetMesh(RenderState* render, const char* name);
 Shader* GetShader(RenderState* render, const char* name);
 Material* GetMaterial(RenderState* render, const char* name);
 
-Mesh LoadMesh(RenderState* render, char* path);
-Shader LoadShader(RenderState* render, char* path);
-Material LoadMaterial(RenderState* render, char* path);
+Mesh* LoadMesh(RenderState* render, char* path, const char* name);
+Shader* LoadShader(RenderState* render, char* path, const char* name);
+Material* LoadMaterial(RenderState* render, arena* persistent, char* path, const char* name, Shader* shader);

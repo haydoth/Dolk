@@ -90,14 +90,14 @@ typedef struct {
 } Vector2s;
 
 obj_data
-ReadOBJBuffer(void* buffer, u64 bufferSize, arena* _arena) {
+ReadOBJBuffer(void* buffer, u64 bufferSize, arena* persistent) {
 
   ASSERT(buffer);
   string_view str = {(char*)buffer, bufferSize};
 
   obj_data data = {0};
   
-  arena_temp scratch = GetScratch((arena*[]){_arena}, 1);
+  arena_temp scratch = GetScratch((arena*[]){persistent}, 1);
   
   Vector3s positions = {0};
   Vector3s normals = {0};
@@ -126,10 +126,7 @@ ReadOBJBuffer(void* buffer, u64 bufferSize, arena* _arena) {
       sv_trim(&word2);
       sv_trim(&word3);
 
-      if(sv_cmp(word0, sv("o"))) {
-	data.Name = word1;
-      }
-      else if(sv_cmp(word0, sv("v"))) {
+      if(sv_cmp(word0, sv("v"))) {
 	vec3s pos = {sv_to_f32(word1), sv_to_f32(word2), sv_to_f32(word3)};
 	*da_append(positions, scratch.Arena) = pos;
       }
@@ -185,28 +182,28 @@ ReadOBJBuffer(void* buffer, u64 bufferSize, arena* _arena) {
 
       u32 ret = obj_index_lookup(v, vt, vn, lookupList);
       if(ret) {
-	*da_append(data.Indices, _arena) = ret;
+	*da_append(data.Indices, persistent) = ret;
       }
       else {
-	*da_append(data.Indices, _arena) = (u32)lookupList.Count;
+	*da_append(data.Indices, persistent) = (u32)lookupList.Count;
 	obj_index objIndex = {v, vt, vn, (u32)lookupList.Count};
-	*da_append(lookupList, _arena) = objIndex;
-	//ht_insert(&lookupList, _arena, (u64)hash_u32_3(v, vt, vn), &objIndex);
+	*da_append(lookupList, persistent) = objIndex;
+	//ht_insert(&lookupList, persistent, (u64)hash_u32_3(v, vt, vn), &objIndex);
 
-	*da_append(data.Vertices, _arena) = positions.Items[v - 1].x;
-	*da_append(data.Vertices, _arena) = positions.Items[v - 1].y;
-	*da_append(data.Vertices, _arena) = positions.Items[v - 1].z;
-	*da_append(data.Vertices, _arena) = textureCoordinates.Items[vt - 1].x;
-	*da_append(data.Vertices, _arena) = textureCoordinates.Items[vt - 1].y;
-	*da_append(data.Vertices, _arena) = normals.Items[vn - 1].x;
-	*da_append(data.Vertices, _arena) = normals.Items[vn - 1].y;
-	*da_append(data.Vertices, _arena) = normals.Items[vn - 1].z;
+	*da_append(data.Vertices, persistent) = positions.Items[v - 1].x;
+	*da_append(data.Vertices, persistent) = positions.Items[v - 1].y;
+	*da_append(data.Vertices, persistent) = positions.Items[v - 1].z;
+	*da_append(data.Vertices, persistent) = textureCoordinates.Items[vt - 1].x;
+	*da_append(data.Vertices, persistent) = textureCoordinates.Items[vt - 1].y;
+	*da_append(data.Vertices, persistent) = normals.Items[vn - 1].x;
+	*da_append(data.Vertices, persistent) = normals.Items[vn - 1].y;
+	*da_append(data.Vertices, persistent) = normals.Items[vn - 1].z;
       }
     }
 
-    *da_append(data.Format, _arena) = 3;
-    *da_append(data.Format, _arena) = 2;
-    *da_append(data.Format, _arena) = 3;
+    *da_append(data.Format, persistent) = 3;
+    *da_append(data.Format, persistent) = 2;
+    *da_append(data.Format, persistent) = 3;
   }
   else {    
 
@@ -216,24 +213,24 @@ ReadOBJBuffer(void* buffer, u64 bufferSize, arena* _arena) {
 
       u32 ret = obj_index_lookup(v, 0, vn, lookupList);
       if(ret) {
-	*da_append(data.Indices, _arena) = ret;
+	*da_append(data.Indices, persistent) = ret;
       }
       else {
-	*da_append(data.Indices, _arena) = (u32)lookupList.Count;
+	*da_append(data.Indices, persistent) = (u32)lookupList.Count;
 	obj_index objIndex = {v, 0, vn, (u32)lookupList.Count};
-	*da_append(lookupList, _arena) = objIndex;
-	  //ht_insert(&lookupList, _arena, (u64)hash_u32_3(v, 0, vn), &objIndex);
+	*da_append(lookupList, persistent) = objIndex;
+	  //ht_insert(&lookupList, persistent, (u64)hash_u32_3(v, 0, vn), &objIndex);
 
-	*da_append(data.Vertices, _arena) = positions.Items[v - 1].x;
-	*da_append(data.Vertices, _arena) = positions.Items[v - 1].y;
-	*da_append(data.Vertices, _arena) = positions.Items[v - 1].z;
-	*da_append(data.Vertices, _arena) = normals.Items[vn - 1].x;
-	*da_append(data.Vertices, _arena) = normals.Items[vn - 1].y;
-	*da_append(data.Vertices, _arena) = normals.Items[vn - 1].z;
+	*da_append(data.Vertices, persistent) = positions.Items[v - 1].x;
+	*da_append(data.Vertices, persistent) = positions.Items[v - 1].y;
+	*da_append(data.Vertices, persistent) = positions.Items[v - 1].z;
+	*da_append(data.Vertices, persistent) = normals.Items[vn - 1].x;
+	*da_append(data.Vertices, persistent) = normals.Items[vn - 1].y;
+	*da_append(data.Vertices, persistent) = normals.Items[vn - 1].z;
       }
     }    
-    *da_append(data.Format, _arena) = 3;
-    *da_append(data.Format, _arena) = 3;
+    *da_append(data.Format, persistent) = 3;
+    *da_append(data.Format, persistent) = 3;
   }
 
   ReleaseScratch(scratch);
